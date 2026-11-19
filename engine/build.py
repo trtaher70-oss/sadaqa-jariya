@@ -201,6 +201,8 @@ def next_khatma(st):
     """Next passage of the running khatma + a reciter that has it. Advances st (khatma pointer, rotation)."""
     su, n = st.get("su", 1), st.get("n", 1)
     order = list(REC)
+    if not any(align(rk, su) for rk in order):  # timings for this surah not uploaded yet: wait, never skip
+        raise RuntimeError(f"khatma: no timings yet for surah {su}")
     for _ in range(len(order)):
         rk = order[st.get("rot", 0) % len(order)]
         st["rot"] = st.get("rot", 0) + 1

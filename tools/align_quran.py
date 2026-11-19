@@ -123,6 +123,27 @@ def do_surah(rk, su):
     return res
 
 
+TOKEN_FILE = Path(r"C:\Users\t8646\prv60_clipper\publisher_secrets\github_token.txt")
+
+
+def push(msg):
+    import base64
+    tok = TOKEN_FILE.read_text().strip()
+    hdr = "AUTHORIZATION: basic " + base64.b64encode(f"x-access-token:{tok}".encode()).decode()
+    g = ["git", "-C", str(ROOT)]
+    subprocess.run(g + ["add", "data/align"], check=False)
+    if subprocess.run(g + ["diff", "--cached", "--quiet"]).returncode == 0:
+        return
+    subprocess.run(g + ["-c", "user.name=sadaqa-bot", "-c", "user.email=sadaqa-bot@users.noreply.github.com",
+                        "commit", "-q", "-m", msg], check=False)
+    for _ in range(3):
+        subprocess.run(g + ["-c", f"http.extraheader={hdr}", "pull", "-q", "--rebase"], check=False)
+        if subprocess.run(g + ["-c", f"http.extraheader={hdr}", "push", "-q"]).returncode == 0:
+            print("pushed", msg, flush=True)
+            return
+        time.sleep(20)
+
+
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     only_s = int(sys.argv[sys.argv.index("--surah") + 1]) if "--surah" in sys.argv else None
@@ -137,6 +158,8 @@ def main():
                 do_surah(rk, su)
             except Exception as e:
                 print(f"{rk} {su:03d}: ERROR {e}", flush=True)
+        if "--push" in sys.argv:  # upload this surah's timings so the cloud khatma can use them right away
+            push(f"timings: surah {su}")
 
 
 if __name__ == "__main__":
