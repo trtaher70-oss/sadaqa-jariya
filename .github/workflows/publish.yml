@@ -9,6 +9,10 @@ on:
       slot:
         description: "force a slot now (morning / afternoon / evening) — empty = normal run"
         required: false
+      dry:
+        description: "test only: render, do not publish (the video is attached to the run)"
+        type: boolean
+        default: false
 concurrency:
   group: publish
   cancel-in-progress: false
@@ -55,9 +59,20 @@ jobs:
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
         run: |
-          if [ -n "${{ github.event.inputs.slot }}" ]; then python engine/run.py --slot "${{ github.event.inputs.slot }}"; else python engine/run.py; fi
+          if [ "${{ github.event.inputs.dry }}" = "true" ]; then python engine/run.py --slot "${{ github.event.inputs.slot }}" --dry
+          elif [ -n "${{ github.event.inputs.slot }}" ]; then python engine/run.py --slot "${{ github.event.inputs.slot }}"
+          else python engine/run.py; fi
+      - name: attach test video
+        if: github.event.inputs.dry == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reel
+          path: |
+            work/**/video.mp4
+            work/**/cover.jpg
+            work/**/props.json
       - name: save state
-        if: always() && steps.due.outputs.due == 'yes'
+        if: always() && steps.due.outputs.due == 'yes' && github.event.inputs.dry != 'true'
         run: |
           git config user.name "sadaqa-bot"
           git config user.email "sadaqa-bot@users.noreply.github.com"

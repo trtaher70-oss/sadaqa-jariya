@@ -143,7 +143,7 @@ def props_for(rk, su, ayat, hook, kind, wd):
         units.append((Q[f"{su}:{n}"]["w"], a["ayat"][str(n)]["w"], f"سورة {SURAS[su - 1]} — الآية {ar(n)}", n))
     audio, pages, t0, prev_end = [], [], LEAD, None
     for i, (words, spans, ref, no) in enumerate(units):
-        s0 = spans[0][0] - 0.3
+        s0 = max(0.0, spans[0][0] - 0.3)
         if prev_end is not None:
             s0 = max(s0, prev_end + 0.02)
         e0 = spans[-1][1] + 0.35
