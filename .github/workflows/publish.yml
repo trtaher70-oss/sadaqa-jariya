@@ -22,10 +22,14 @@ concurrency:
   cancel-in-progress: false
 permissions:
   contents: write
+  pages: write
+  id-token: write
 jobs:
   run:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
+    outputs:
+      due: ${{ steps.due.outputs.due }}
     steps:
       - uses: actions/checkout@v4
       - name: what is due
@@ -85,6 +89,30 @@ jobs:
           git config user.email "sadaqa-bot@users.noreply.github.com"
           git add state/
           git diff --cached --quiet || (git commit -q -m "state: $(date -u +%F' '%H:%M)" && git push -q)
+  site:
+    # the dashboard (docs/) + phone-friendly copies of the next reels, published to GitHub Pages
+    needs: run
+    if: always() && needs.run.outputs.due == 'yes'
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: main}
+      - name: assemble site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git pull -q origin main || true
+          mkdir -p _site/preview && cp -r docs/. _site/
+          gh release download preview -p 'light-*' -D _light --clobber -R "$GITHUB_REPOSITORY" || true
+          for f in _light/light-*; do [ -f "$f" ] && cp "$f" "_site/preview/$(basename "$f" | sed 's/^light-//')"; done
+          ls -la _site/preview || true
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: _site}
+      - id: deploy
+        uses: actions/deploy-pages@v4
   keepalive:
     # GitHub pauses scheduled workflows in repos with no commits for 60 days; touch a file monthly.
     runs-on: ubuntu-24.04

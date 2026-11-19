@@ -87,6 +87,19 @@ def upload(tag, path, name, ctype):
 
 
 # ------------------------------------------------------------------ preview of the next post
+def light(src_url_or_path, slot, wd):
+    """Small phone-friendly copy (540p) of a reel + its cover, uploaded as light-<slot>.mp4/.jpg (the dashboard
+    site serves them as real video files — release files themselves are 'downloads' that phones refuse to play)."""
+    import subprocess
+    wd.mkdir(parents=True, exist_ok=True)
+    src = Path(src_url_or_path) if not str(src_url_or_path).startswith("http") else download(src_url_or_path, wd / "src.mp4")
+    out, jpg = wd / f"light-{slot}.mp4", wd / f"light-{slot}.jpg"
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(src), "-vf", "scale=540:-2", "-c:v", "libx264",
+                    "-crf", "28", "-preset", "veryfast", "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", str(out)], check=True)
+    subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", "1.5", "-i", str(src), "-frames:v", "1",
+                    "-vf", "scale=540:-2", "-q:v", "4", str(jpg)], check=True)
+    upload("preview", out, out.name, "video/mp4")
+    upload("preview", jpg, jpg.name, "image/jpeg")
 def key(sst):
     return json.dumps(sst, sort_keys=True, ensure_ascii=False)
 
@@ -118,11 +131,17 @@ def make_previews(st, schedule, builders, tz, only=None):
                 it = peek(stream, sst)
                 if not it:
                     continue
+                prev = nxt.get(slot["name"], {})
+                if prev.get("full") != it["ig_asset"]:
+                    light(it["ig_asset"], slot["name"], ROOT / "work" / f"light_{slot['name']}")
+                    prev = {"stamp": stamp}
+                st_ = prev.get("stamp", stamp)
                 nxt[slot["name"]] = {"when": when, "stream": stream, "label": f"{stream} {it['id']}", "title": it.get("title", ""),
-                                     "video": it["ig_asset"], "cover": it.get("cover"), "caption": it["caption"], "queue": True}
+                                     "full": it["ig_asset"], "video": f"preview/{slot['name']}.mp4?v={st_}",
+                                     "cover": f"preview/{slot['name']}.jpg?v={st_}", "caption": it["caption"], "queue": True, "stamp": st_}
                 break
             prev = nxt.get(slot["name"], {})
-            if prev.get("before") == before and prev.get("video"):  # already prepared, nothing changed
+            if prev.get("before") == before and prev.get("full"):  # already prepared, nothing changed
                 prev["when"] = when
                 break
             wd = ROOT / "work" / f"preview_{slot['name']}"
@@ -134,9 +153,10 @@ def make_previews(st, schedule, builders, tz, only=None):
             if not item:
                 continue
             v = upload("preview", item["mp4"], f"{slot['name']}.mp4", "video/mp4")
-            c = upload("preview", wd / "cover.jpg", f"{slot['name']}.jpg", "image/jpeg") if (wd / "cover.jpg").is_file() else None
+            light(item["mp4"], slot["name"], wd)
             nxt[slot["name"]] = {"when": when, "stream": stream, "label": item["label"], "title": item.get("yt_title", ""),
-                                 "video": f"{v}?v={stamp}", "cover": f"{c}?v={stamp}" if c else None, "caption": item["caption"],
+                                 "full": f"{v}?v={stamp}", "video": f"preview/{slot['name']}.mp4?v={stamp}",
+                                 "cover": f"preview/{slot['name']}.jpg?v={stamp}", "caption": item["caption"], "stamp": stamp,
                                  "yt_title": item.get("yt_title", ""), "yt_desc": item.get("yt_desc", ""), "thumb_ms": item.get("thumb_ms", 1500),
                                  "before": before, "after": sst, "queue": False}
             break
@@ -153,7 +173,7 @@ def use_preview(slot_name, stream, sst, wd):
     if not p or p.get("queue") or p.get("stream") != stream or p.get("before") != key(sst):
         return None
     try:
-        mp4 = download(p["video"], wd / "video.mp4")
+        mp4 = download(p["full"], wd / "video.mp4")
     except Exception as e:  # noqa: BLE001
         print("preview not usable, rendering:", e)
         return None
