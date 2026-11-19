@@ -35,6 +35,29 @@ def save_state(st):
     STATE.write_text(json.dumps(st, ensure_ascii=False, indent=1), encoding="utf-8")
 
 
+def write_stats():
+    """Public numbers for the dashboard (followers, posts, latest reels). Never writes any secret."""
+    import os
+    uid, tok = os.environ.get("IG_USER_ID"), os.environ.get("IG_TOKEN")
+    if not uid or not tok:
+        return
+    try:
+        g = "https://graph.facebook.com/" + os.environ.get("GRAPH_VERSION", "v23.0")
+        f = ("username,followers_count,media_count,media.limit(12){caption,media_product_type,timestamp,permalink,"
+             "thumbnail_url,media_url,like_count,comments_count}")
+        d = requests.get(f"{g}/{uid}", params={"fields": f, "access_token": tok}, timeout=60).json()
+        if "error" in d:
+            return
+        media = [{"t": m.get("timestamp"), "url": m.get("permalink"), "thumb": m.get("thumbnail_url") or m.get("media_url"),
+                  "cap": (m.get("caption") or "").splitlines()[0][:120] if m.get("caption") else "", "likes": m.get("like_count", 0),
+                  "comments": m.get("comments_count", 0), "type": m.get("media_product_type")} for m in d.get("media", {}).get("data", [])]
+        out = {"updated": dt.datetime.now(TZ).isoformat(timespec="minutes"), "username": d.get("username"),
+               "followers": d.get("followers_count"), "posts": d.get("media_count"), "recent": media}
+        (ROOT / "state" / "stats.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001
+        print("stats skipped:", e)
+
+
 def build_podcast(sst, wd):
     """Next approved podcast clip (prepared and reviewed by a person). None when the queue is empty."""
     q = json.loads((ROOT / "data" / "podcast_queue.json").read_text(encoding="utf-8"))
@@ -135,9 +158,11 @@ def main():
                 st["slots"][slots[0]["name"]] = dt.datetime.now(TZ).date().isoformat()
             st["fails"] = {k: v for k, v in fails.items() if k.split(":")[1] >= (dt.datetime.now(TZ).date() - dt.timedelta(days=7)).isoformat()}
             save_state(st)
+            write_stats()
         sys.exit(1)
     if not dry:
         save_state(st)
+        write_stats()
 
 
 if __name__ == "__main__":

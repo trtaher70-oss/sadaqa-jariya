@@ -76,7 +76,7 @@ jobs:
         run: |
           git config user.name "sadaqa-bot"
           git config user.email "sadaqa-bot@users.noreply.github.com"
-          git add state/state.json
+          git add state/
           git diff --cached --quiet || (git commit -q -m "state: $(date -u +%F' '%H:%M)" && git push -q)
   keepalive:
     # GitHub pauses scheduled workflows in repos with no commits for 60 days; touch a file monthly.
