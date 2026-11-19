@@ -9,6 +9,10 @@ on:
       slot:
         description: "force a slot now (morning / afternoon / evening) — empty = normal run"
         required: false
+      preview:
+        description: "only prepare the next posts for the dashboard (no publishing)"
+        type: boolean
+        default: false
       dry:
         description: "test only: render, do not publish (the video is attached to the run)"
         type: boolean
@@ -34,10 +38,11 @@ jobs:
           st = json.load(open("state/state.json", encoding="utf-8")) if os.path.exists("state/state.json") else {"slots": {}}
           due = [s for s in sched["slots"] if (not s.get("from") or today >= s["from"])
                  and (now.hour, now.minute) >= tuple(map(int, s["time"].split(":"))) and st["slots"].get(s["name"]) != today]
-          print("due=" + ("yes" if due or os.environ.get("FORCE") else "no"))
+          print("due=" + ("yes" if due or os.environ.get("FORCE") or os.environ.get("PREV") == "true" else "no"))
           PY
         env:
           FORCE: ${{ github.event.inputs.slot }}
+          PREV: ${{ github.event.inputs.preview }}
       - uses: actions/setup-python@v5
         if: steps.due.outputs.due == 'yes'
         with: {python-version: "3.12"}
@@ -58,7 +63,9 @@ jobs:
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
           YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
           YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
+          if [ "${{ github.event.inputs.preview }}" = "true" ]; then python engine/run.py --preview; exit 0; fi
           if [ "${{ github.event.inputs.dry }}" = "true" ]; then python engine/run.py --slot "${{ github.event.inputs.slot }}" --dry
           elif [ -n "${{ github.event.inputs.slot }}" ]; then python engine/run.py --slot "${{ github.event.inputs.slot }}"
           else python engine/run.py; fi

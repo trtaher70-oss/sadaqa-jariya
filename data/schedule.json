@@ -1,14 +1,17 @@
 {
- "_note": "أوقات بتوقيت تركيا/مكة. stream: curated (أدعية وتذكير) | khatma (ختمة القرآن) | podcast (مقاطع مراجَعة). fallback يُستعمل إذا فرغ الأول.",
+ "_note": "أوقات بتوقيت تركيا/مكة. stream: morning_queue (ريلز الأدعية الجاهزة) → curated (دورات جديدة بأصوات أخرى) | khatma (ختمة القرآن) | podcast (مقاطع مراجَعة). fallback يُستعمل إذا فرغ الأول.",
  "slots": [
   {
    "name": "morning",
    "time": "09:00",
-   "stream": "curated",
+   "stream": "morning_queue",
    "platforms": [
     "instagram"
    ],
-   "from": "2026-12-22"
+   "from": "2026-11-21",
+   "fallback": [
+    "curated"
+   ]
   },
   {
    "name": "afternoon",
@@ -30,7 +33,7 @@
     "instagram",
     "youtube"
    ],
-   "from": "2027-01-02"
+   "from": "2026-11-24"
   }
  ]
 }

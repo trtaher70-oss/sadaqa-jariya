@@ -18,6 +18,7 @@ import requests
 sys.path.insert(0, str(Path(__file__).parent))
 import build  # noqa: E402
 import publish  # noqa: E402
+import queues as Q  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / "state" / "state.json"
@@ -58,31 +59,6 @@ def write_stats():
         print("stats skipped:", e)
 
 
-def build_podcast(sst, wd):
-    """Next approved podcast clip (prepared and reviewed by a person). None when the queue is empty."""
-    q = json.loads((ROOT / "data" / "podcast_queue.json").read_text(encoding="utf-8"))
-    done = set(sst.setdefault("done", []))
-    it = next((x for x in q if x.get("approved") and x["id"] not in done), None)
-    if not it:
-        return None
-    wd.mkdir(parents=True, exist_ok=True)
-    out = {}
-    for plat in ("ig", "yt"):
-        url = it.get(f"{plat}_asset")
-        if url:
-            f = wd / f"{plat}.mp4"
-            with requests.get(url, stream=True, timeout=900) as r:
-                r.raise_for_status()
-                with open(f, "wb") as o:
-                    for ch in r.iter_content(1 << 16):
-                        o.write(ch)
-            out[plat] = f
-    sst["done"].append(it["id"])
-    return {"mp4": out.get("ig"), "mp4_yt": out.get("yt") or out.get("ig"), "thumb_ms": it.get("thumb_ms", 1500),
-            "caption": it["caption"], "yt_title": it["yt_title"], "yt_desc": it["yt_desc"], "tags": it.get("tags", []),
-            "label": f"podcast {it['id']}"}
-
-
 def due_slots(st, now):
     today = now.date().isoformat()
     out = []
@@ -103,7 +79,10 @@ def do_slot(st, slot, dry=False):
     item, used = None, None
     for stream in [slot["stream"]] + slot.get("fallback", []):
         sst = streams.setdefault(stream, {})
-        item = build_podcast(sst, wd) if stream == "podcast" else build.BUILDERS[stream](sst, wd)
+        if stream in Q.QUEUES:
+            item = Q.build_queue(stream, sst, wd)
+        else:  # the reel prepared in advance (shown on the dashboard) if still valid, else render now
+            item = Q.use_preview(slot["name"], stream, sst, wd) or build.BUILDERS[stream](sst, wd)
         if item:
             used = stream
             break
@@ -135,9 +114,19 @@ def do_slot(st, slot, dry=False):
         raise RuntimeError(f"slot {slot['name']}: publishing failed {results}")
 
 
+def previews(st, only=None):
+    try:
+        Q.make_previews(st, SCHED, build.BUILDERS, TZ, only)
+    except Exception:  # a failed preview never blocks publishing
+        traceback.print_exc()
+
+
 def main():
     dry = "--dry" in sys.argv
     st = load_state()
+    if "--preview" in sys.argv:
+        previews(st, sys.argv[sys.argv.index("--preview") + 1] if len(sys.argv) > sys.argv.index("--preview") + 1 else None)
+        return
     if "--slot" in sys.argv:
         name = sys.argv[sys.argv.index("--slot") + 1]
         slots = [s for s in SCHED["slots"] if s["name"] == name]
@@ -163,6 +152,7 @@ def main():
     if not dry:
         save_state(st)
         write_stats()
+        previews(st)
 
 
 if __name__ == "__main__":

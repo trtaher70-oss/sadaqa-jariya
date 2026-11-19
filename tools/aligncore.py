@@ -125,7 +125,7 @@ def match(qwords, ww):
         return None, 0
     sim = lambda a, b: SequenceMatcher(None, a, b, autojunk=False).ratio() if a and b else 0.0
     INF = 1e9
-    SKIP_W, SKIP_Q = 0.75, 0.9
+    SKIP_W, SKIP_Q = 0.3, 0.9  # extra heard words inside an ayah are cheap (reciters repeat phrases)
     # D[i][j]: best cost aligning Q[:j] ending at whisper index i (free start in W)
     D = [[INF] * (m + 1) for _ in range(n + 1)]
     B = [[None] * (m + 1) for _ in range(n + 1)]

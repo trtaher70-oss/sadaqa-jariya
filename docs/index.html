@@ -61,6 +61,12 @@ th{color:var(--muted);font-weight:500;border-top:0}
 .rec .bar{height:9px}
 .note{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:14px}
 .note ul{margin:6px 0 0;padding-inline-start:20px}
+.nexts{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.nx{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.nx video{width:100%;aspect-ratio:9/16;border-radius:10px;background:#0d120c;object-fit:cover}
+.nx .h{display:flex;align-items:center;gap:8px}.nx .h b{flex:1}
+.nx details{font-size:13px}.nx summary{cursor:pointer;color:var(--sand)}
+.nx pre{white-space:pre-wrap;font:13px/1.7 "IBM Plex Sans Arabic",sans-serif;background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;margin:6px 0 0;max-height:300px;overflow:auto}
 footer{margin-top:22px;color:var(--muted);font-size:13px;text-align:center;font-family:Amiri,serif}
 .err{color:var(--bad);font-size:13px}
 .scroll{overflow-x:auto}
@@ -100,6 +106,11 @@ footer{margin-top:22px;color:var(--muted);font-size:13px;text-align:center;font-
       <div class="row" style="margin-top:14px"><span>أدعية الصباح</span><span class="muted" id="cur">—</span></div>
       <div class="row"><span>مقاطع بودكاست مراجَعة بالانتظار</span><span class="muted" id="pod">—</span></div>
     </div>
+  </section>
+
+  <section class="card" style="margin-bottom:14px">
+    <h2>المنشور القادم <small>الفيديو كما سيُنشر تماماً</small></h2>
+    <div class="grid nexts" id="nexts"><div class="muted">…</div></div>
   </section>
 
   <section class="card" style="margin-bottom:14px">
@@ -149,7 +160,7 @@ const fmt = (d, o) => new Intl.DateTimeFormat("ar", {timeZone: TZ, ...o}).format
 const todayTR = () => new Intl.DateTimeFormat("en-CA", {timeZone: TZ}).format(new Date());
 const nowHM = () => { const p = new Intl.DateTimeFormat("en-GB", {timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false}).format(new Date()); return p; };
 const HM12 = s => { const [h, m] = s.split(":").map(Number); return AR(`${h % 12 || 12}:${String(m).padStart(2, "0")}`) + (h < 12 ? " ص" : " م"); };
-const STREAM = {curated: "آية أو دعاء", khatma: "ختمة القرآن", podcast: "بودكاست"};
+const STREAM = {curated: "آية أو دعاء", morning_queue: "آية أو دعاء", khatma: "ختمة القرآن", podcast: "بودكاست", podcast_queue: "بودكاست"};
 const PLAT = {instagram: "إنستغرام", youtube: "يوتيوب"};
 
 async function j(url) { const r = await fetch(url, {cache: "no-store"}); if (!r.ok) throw new Error(r.status); return r.json(); }
@@ -165,10 +176,10 @@ function labelFor(item, suras, curated) {
 }
 
 async function main() {
-  const [st, stats, sched, suras, curated, queue, recs, runs, tree] = await Promise.allSettled([
+  const [st, stats, sched, suras, curated, queue, recs, runs, tree, nextF] = await Promise.allSettled([
     j(RAW + "state/state.json"), j(RAW + "state/stats.json"), j(RAW + "data/schedule.json"), j(RAW + "data/suras.json"),
     j(RAW + "data/curated.json"), j(RAW + "data/podcast_queue.json"), j(RAW + "data/reciters.json"),
-    j(API + "/actions/runs?per_page=30"), j(API + "/git/trees/main?recursive=1")]);
+    j(API + "/actions/runs?per_page=30"), j(API + "/git/trees/main?recursive=1"), j(RAW + "state/next.json")]);
   const S = st.value || {streams: {}, slots: {}, log: []}, SU = suras.value || [], CU = curated.value || [];
   const log = S.log || [];
 
@@ -218,6 +229,21 @@ async function main() {
     return `<div class="slot"><span class="time">${HM12(s.time)}</span><div class="what"><b>${STREAM[s.stream]}</b><span>${sub}</span></div><span class="st ${cls}">${txt}</span></div>`;
   }).join("");
   $("slots").innerHTML = slotHTML || '<div class="err">تعذّر تحميل الجدول</div>';
+
+
+  // next posts
+  const NX = nextF.value || {};
+  const order = (sched.value?.slots || []).map(s => s.name);
+  const nxHTML = order.filter(n => NX[n]).map(n => {
+    const x = NX[n], s = (sched.value.slots.find(y => y.name === n)) || {};
+    const d = new Date(x.when.replace(" ", "T") + ":00+03:00");
+    return `<div class="nx"><div class="h"><span class="time" style="background:var(--gold);color:var(--ink);border-radius:10px;padding:2px 10px;font-weight:700;font-size:13px">${HM12(s.time || x.when.slice(11))}</span>
+      <b>${STREAM[x.stream] || (x.stream === "morning_queue" ? "آية أو دعاء" : x.stream)}</b><span class="muted">${fmt(d, {weekday: "short", day: "numeric", month: "short"})}</span></div>
+      <video controls preload="none" playsinline ${x.cover ? `poster="${esc(x.cover)}"` : ""} src="${esc(x.video)}"></video>
+      <div class="muted">${esc(x.title || labelFor(x.label, SU, CU))}</div>
+      <details><summary>نص الكابشن</summary><pre>${esc(x.caption)}</pre></details></div>`;
+  }).join("");
+  $("nexts").innerHTML = nxHTML || '<div class="muted">يُجهَّز المنشور القادم بعد كل عملية نشر — يظهر هنا قريباً.</div>';
 
   // recent media
   const media = stats.value?.recent || [];
