@@ -36,7 +36,7 @@ h2{font:700 20px/1.3 Amiri,serif;color:var(--sand);margin:0 0 12px;display:flex;
 h2 small{font:500 12px "IBM Plex Sans Arabic";color:var(--muted);margin-inline-start:auto}
 .slot{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
 .slot:first-of-type{border-top:0}
-.slot .time{flex:none;width:64px;text-align:center;font-weight:700;color:var(--ink);background:var(--gold);border-radius:10px;padding:3px 0;font-size:14px}
+.slot .time{flex:none;width:78px;text-align:center;font-weight:700;color:var(--ink);background:var(--gold);border-radius:10px;padding:3px 0;font-size:14px}
 .slot .what{flex:1;min-width:0}
 .slot .what b{display:block}
 .slot .what span{color:var(--muted);font-size:13px}
@@ -148,6 +148,7 @@ const TZ = "Europe/Istanbul";
 const fmt = (d, o) => new Intl.DateTimeFormat("ar", {timeZone: TZ, ...o}).format(d);
 const todayTR = () => new Intl.DateTimeFormat("en-CA", {timeZone: TZ}).format(new Date());
 const nowHM = () => { const p = new Intl.DateTimeFormat("en-GB", {timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false}).format(new Date()); return p; };
+const HM12 = s => { const [h, m] = s.split(":").map(Number); return AR(`${h % 12 || 12}:${String(m).padStart(2, "0")}`) + (h < 12 ? " ص" : " م"); };
 const STREAM = {curated: "آية أو دعاء", khatma: "ختمة القرآن", podcast: "بودكاست"};
 const PLAT = {instagram: "إنستغرام", youtube: "يوتيوب"};
 
@@ -214,7 +215,7 @@ async function main() {
       sub = `${esc(labelFor(entry.item, SU, CU))}${links ? " — " + links : ""}`;
     } else if (S.slots?.[s.name] === td) { cls = "fail"; txt = "تُخطّي اليوم"; }
     else { cls = hm >= s.time ? "next" : "later"; txt = hm >= s.time ? "جارٍ الآن" : "بانتظار موعده"; }
-    return `<div class="slot"><span class="time">${AR(s.time)}</span><div class="what"><b>${STREAM[s.stream]}</b><span>${sub}</span></div><span class="st ${cls}">${txt}</span></div>`;
+    return `<div class="slot"><span class="time">${HM12(s.time)}</span><div class="what"><b>${STREAM[s.stream]}</b><span>${sub}</span></div><span class="st ${cls}">${txt}</span></div>`;
   }).join("");
   $("slots").innerHTML = slotHTML || '<div class="err">تعذّر تحميل الجدول</div>';
 
