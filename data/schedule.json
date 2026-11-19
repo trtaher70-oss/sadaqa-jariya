@@ -1,0 +1,36 @@
+{
+ "_note": "أوقات بتوقيت تركيا/مكة. stream: curated (أدعية وتذكير) | khatma (ختمة القرآن) | podcast (مقاطع مراجَعة). fallback يُستعمل إذا فرغ الأول.",
+ "slots": [
+  {
+   "name": "morning",
+   "time": "09:00",
+   "stream": "curated",
+   "platforms": [
+    "instagram"
+   ],
+   "from": "2026-12-22"
+  },
+  {
+   "name": "afternoon",
+   "time": "15:00",
+   "stream": "khatma",
+   "platforms": [
+    "instagram"
+   ],
+   "from": "2026-12-22"
+  },
+  {
+   "name": "evening",
+   "time": "20:45",
+   "stream": "podcast",
+   "fallback": [
+    "khatma"
+   ],
+   "platforms": [
+    "instagram",
+    "youtube"
+   ],
+   "from": "2027-01-02"
+  }
+ ]
+}

@@ -1,0 +1,77 @@
+name: publish
+# Every hour: publish any slot whose time has come (Turkey time) and is not done yet. State is committed back,
+# which also keeps the scheduled workflow alive.
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: "force a slot now (morning / afternoon / evening) — empty = normal run"
+        required: false
+concurrency:
+  group: publish
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: what is due
+        id: due
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, datetime as dt, os
+          tz = dt.timezone(dt.timedelta(hours=3)); now = dt.datetime.now(tz); today = now.date().isoformat()
+          sched = json.load(open("data/schedule.json", encoding="utf-8"))
+          st = json.load(open("state/state.json", encoding="utf-8")) if os.path.exists("state/state.json") else {"slots": {}}
+          due = [s for s in sched["slots"] if (not s.get("from") or today >= s["from"])
+                 and (now.hour, now.minute) >= tuple(map(int, s["time"].split(":"))) and st["slots"].get(s["name"]) != today]
+          print("due=" + ("yes" if due or os.environ.get("FORCE") else "no"))
+          PY
+        env:
+          FORCE: ${{ github.event.inputs.slot }}
+      - uses: actions/setup-python@v5
+        if: steps.due.outputs.due == 'yes'
+        with: {python-version: "3.12"}
+      - uses: actions/setup-node@v4
+        if: steps.due.outputs.due == 'yes'
+        with: {node-version: "22"}
+      - name: install
+        if: steps.due.outputs.due == 'yes'
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-noto-color-emoji > /dev/null
+          pip install -q -r requirements.txt
+          cd video && npm install --no-audit --no-fund --loglevel=error && npx remotion browser ensure
+      - name: publish
+        if: steps.due.outputs.due == 'yes'
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+        run: |
+          if [ -n "${{ github.event.inputs.slot }}" ]; then python engine/run.py --slot "${{ github.event.inputs.slot }}"; else python engine/run.py; fi
+      - name: save state
+        if: always() && steps.due.outputs.due == 'yes'
+        run: |
+          git config user.name "sadaqa-bot"
+          git config user.email "sadaqa-bot@users.noreply.github.com"
+          git add state/state.json
+          git diff --cached --quiet || (git commit -q -m "state: $(date -u +%F' '%H:%M)" && git push -q)
+  keepalive:
+    # GitHub pauses scheduled workflows in repos with no commits for 60 days; touch a file monthly.
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'schedule'
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          if [ "$(date -u +%d%H)" = "0103" ]; then
+            date -u +%F > state/alive.txt
+            git config user.name "sadaqa-bot"; git config user.email "sadaqa-bot@users.noreply.github.com"
+            git add state/alive.txt && git commit -q -m "keepalive" && git push -q
+          fi

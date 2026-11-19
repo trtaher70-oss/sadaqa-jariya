@@ -1,0 +1,18 @@
+{
+ "streams": {
+  "curated": {
+   "i": 32
+  },
+  "khatma": {
+   "su": 1,
+   "n": 1,
+   "rot": 0,
+   "khatma": 1
+  },
+  "podcast": {
+   "done": []
+  }
+ },
+ "slots": {},
+ "log": []
+}
