@@ -190,7 +190,7 @@ def tafsir_for(su, ayat):
         k = n
         while k > 0 and f"{su}:{k}" not in TAFSIR:  # grouped verses: the explanation sits on the first verse
             k -= 1
-        t = TAFSIR.get(f"{su}:{k}", "").strip()
+        t = re.sub(r"<[^>]+>", "", TAFSIR.get(f"{su}:{k}", "")).strip()
         if t and t not in seen:
             seen.add(t)
             parts.append(t)
@@ -242,7 +242,7 @@ def build_khatma(st, wd):
     rng = f"{ar(ayat[0])}" + (f"–{ar(ayat[-1])}" if len(ayat) > 1 else "")
     juz = Q[f"{su}:{ayat[0]}"]["juz"]
     hook = f"سورة {SURAS[su - 1]}"
-    kind = f"ختمة · الجزء {ar(juz)}"
+    kind = f"ختمة — الجزء {ar(juz)}"
     props = props_for(rk, su, ayat, hook, kind, wd)
     mp4, thumb = render(props, wd)
     taf = tafsir_for(su, ayat)
