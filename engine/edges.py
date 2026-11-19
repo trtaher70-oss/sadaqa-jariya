@@ -59,12 +59,13 @@ def voice_start(src, t, limit=None):
     """Where the ayah's voice begins around time t (the first word's whisper start, which can sit inside the
     previous ayah's madd). Real silence just before t if there is one, else the quietest moment (the breath)
     in t-2 s … t+1.2 s. Never before `limit`."""
-    lo = t - 2.0 if limit is None else max(t - 2.0, limit)
+    lo = max(0.0, t - 2.0 if limit is None else max(t - 2.0, limit))
     t0 = max(0.0, lo - 20)
     db, thr = _env(src, t0, t + 2)
     if db is None:
         return max(0.0, t - 0.4)
-    i, ilo = min(len(db) - 1, int((t - t0) / FR)), int((lo - t0) / FR)
+    i = max(0, min(len(db) - 1, int((t - t0) / FR)))
+    ilo = max(0, min(i, int((lo - t0) / FR)))
     run = 0
     for k in range(i, ilo - 1, -1):  # real silence right before t
         run = run + 1 if db[k] < thr else 0
