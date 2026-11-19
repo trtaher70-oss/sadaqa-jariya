@@ -129,7 +129,10 @@ def pages_for(timed):
 
 # ------------------------------------------------------------------ props (video description)
 def props_for(rk, su, ayat, hook, kind, wd):
-    """Cut the audio of `ayat` (consecutive, surah su) for reciter rk and describe the reel for Remotion."""
+    """Describe the reel for Remotion. The recitation of the consecutive `ayat` is cut as ONE continuous piece,
+    from where the voice really starts to where it really stops (audio energy, see edges.py) — never in between
+    ayat, so nothing of the reciter's madd or pauses is lost."""
+    from edges import voice_end, voice_start
     a = align(rk, su)
     src = surah_mp3(rk, su)
     pub = VIDEO / "public" / "clip"
@@ -141,21 +144,22 @@ def props_for(rk, su, ayat, hook, kind, wd):
         units.append((BASMALA, a["basmala"], "", None))
     for n in ayat:
         units.append((Q[f"{su}:{n}"]["w"], a["ayat"][str(n)]["w"], f"سورة {SURAS[su - 1]} — الآية {ar(n)}", n))
-    audio, pages, t0, prev_end = [], [], LEAD, None
-    for i, (words, spans, ref, no) in enumerate(units):
-        s0 = max(0.0, spans[0][0] - 0.3)
-        if prev_end is not None:
-            s0 = max(s0, prev_end + 0.02)
-        e0 = spans[-1][1] + 0.35
-        nxt = units[i + 1][1][0][0] if i + 1 < len(units) else None
-        if nxt is not None:
-            e0 = min(e0, nxt - 0.05)
-        prev_end = spans[-1][1]
-        mp3 = pub / f"u{i:02d}.mp3"
-        run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{s0:.3f}", "-to", f"{e0:.3f}", "-i", str(src),
-             "-af", "afade=t=in:d=0.08,areverse,afade=t=in:d=0.25,areverse", "-ar", "44100", "-b:a", "192k", str(mp3)])
-        audio.append({"src": f"clip/{mp3.name}", "at": round(t0, 3)})
-        timed = [(w, t0 + s - s0, t0 + e - s0) for w, (s, e) in zip(words, spans)]
+    first_t, last_t = units[0][1][0][0], units[-1][1][-1][1]
+    prev = a["ayat"].get(str(ayat[0] - 1)) if units[0][3] else None
+    nxt = a["ayat"].get(str(ayat[-1] + 1))
+    cut0 = voice_start(src, first_t, limit=prev["w"][-1][1] if prev else None)
+    cut1 = voice_end(src, last_t, limit=nxt["w"][0][1] if nxt else None)
+    mp3 = pub / "recitation.mp3"
+    dur = cut1 - cut0
+    run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", f"{cut0:.3f}", "-to", f"{cut1 + 0.25:.3f}", "-i", str(src),
+         "-af", f"afade=t=in:d=0.05,afade=t=out:st={max(0.0, dur):.3f}:d=0.25", "-ar", "44100", "-b:a", "192k", str(mp3)])
+    audio = [{"src": f"clip/{mp3.name}", "at": LEAD}]
+    pages = []
+    for ui, (words, spans, ref, no) in enumerate(units):
+        timed = [(w, LEAD + s - cut0, LEAD + e - cut0) for w, (s, e) in zip(words, spans)]
+        if ui == len(units) - 1:  # the last word lasts until the voice stops
+            w, s, e = timed[-1]
+            timed[-1] = (w, s, max(e, LEAD + dur))
         groups = pages_for(timed)
         for gi, g in enumerate(groups):
             ws = [{"t": w, "s": round(s, 3), "e": round(e, 3)} for w, s, e in g]
@@ -164,8 +168,7 @@ def props_for(rk, su, ayat, hook, kind, wd):
             text = " ".join(w["t"] for w in ws)
             pages.append({"s": round(max(0.05, ws[0]["s"] - 0.3), 3), "e": 0, "text": text, "words": ws, "ref": ref,
                           "size": size_for(letters(text))})
-        t0 += (e0 - s0) + GAP
-    end = t0 - GAP + TAIL
+    end = LEAD + dur + TAIL
     for i in range(len(pages) - 1):
         pages[i]["e"] = pages[i + 1]["s"]
     pages[-1]["e"] = round(end, 3)
