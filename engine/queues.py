@@ -126,7 +126,11 @@ def make_previews(st, schedule, builders, tz, only=None):
                 prev["when"] = when
                 break
             wd = ROOT / "work" / f"preview_{slot['name']}"
-            item = builders[stream](sst, wd)
+            try:
+                item = builders[stream](sst, wd)
+            except Exception as e:  # noqa: BLE001 — one slot's problem never blocks the others
+                print(f"preview {slot['name']}/{stream}: {e}", flush=True)
+                item = None
             if not item:
                 continue
             v = upload("preview", item["mp4"], f"{slot['name']}.mp4", "video/mp4")
