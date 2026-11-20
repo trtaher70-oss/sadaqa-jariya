@@ -44,6 +44,14 @@ jobs:
       - uses: actions/setup-node@v4
         if: steps.due.outputs.due == 'yes'
         with: {node-version: "22"}
+      - name: cache video tools
+        if: steps.due.outputs.due == 'yes'
+        uses: actions/cache@v4
+        with:
+          path: |
+            video/node_modules
+            ~/.cache/remotion
+          key: video-${{ hashFiles('video/package.json') }}
       - name: install
         if: steps.due.outputs.due == 'yes'
         run: |
@@ -79,7 +87,10 @@ jobs:
           git config user.name "sadaqa-bot"
           git config user.email "sadaqa-bot@users.noreply.github.com"
           git add state/
-          git diff --cached --quiet || (git commit -q -m "state: $(date -u +%F' '%H:%M)" && git push -q)
+          git diff --cached --quiet && exit 0
+          git commit -q -m "state: $(date -u +%F' '%H:%M)"
+          for i in 1 2 3 4 5; do git pull -q --rebase origin main && git push -q && exit 0; sleep $((i * 5)); done
+          exit 1
   site:
     # the dashboard (docs/) + phone-friendly copies of the next reels, published to GitHub Pages
     needs: run
@@ -114,5 +125,5 @@ jobs:
           if [ "$(date -u +%d%H)" = "0103" ]; then
             date -u +%F > state/alive.txt
             git config user.name "sadaqa-bot"; git config user.email "sadaqa-bot@users.noreply.github.com"
-            git add state/alive.txt && git commit -q -m "keepalive" && git push -q
+            git add state/alive.txt && git commit -q -m "keepalive" && git pull -q --rebase origin main && git push -q
           fi
