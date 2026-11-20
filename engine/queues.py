@@ -114,16 +114,57 @@ def next_date(slot, now):
     return d
 
 
-def make_previews(st, schedule, builders, tz, only=None):
-    """Prepare the next reel of every slot; write state/next.json."""
+def make_previews(st, schedule, builders, tz, only=None, occasion=None, extras=None, pool_builder=None):
+    """Prepare the next reel of every slot (incl. occasion days and their extra posts); write state/next.json."""
     now = dt.datetime.now(tz)
     nxt = json.loads(NEXT.read_text(encoding="utf-8")) if NEXT.is_file() else {}
     stamp = now.strftime("%Y%m%d%H%M")
-    for slot in schedule["slots"]:
+    plan = [(s, next_date(s, now)) for s in schedule["slots"]]
+    if extras:  # extra occasion posts in the next 7 days (e.g. Friday's hour of answered prayer)
+        seen = set()
+        for i in range(8):
+            d = now.date() + dt.timedelta(days=i)
+            for e in extras(d):
+                if e.get("stream") is None and e["name"] not in seen:
+                    hh, mm = map(int, e["time"].split(":"))
+                    if i == 0 and (now.hour, now.minute) >= (hh, mm) and st["slots"].get(e["name"]) == d.isoformat():
+                        continue
+                    seen.add(e["name"])
+                    plan.append((e, d))
+    live = set()
+    for slot, day in plan:
         if only and slot["name"] != only:
             continue
+        live.add(slot["name"])
         streams = copy.deepcopy(st["streams"])
-        when = f"{next_date(slot, now).isoformat()} {slot['time']}"
+        when = f"{day.isoformat()} {slot['time']}"
+        pool, occ = occasion(slot, day) if occasion else (None, None)
+        if pool and pool_builder:
+            sst = streams.setdefault(f"pool:{pool}", {})
+            before = key(sst)
+            prev = nxt.get(slot["name"], {})
+            if prev.get("before") == before and prev.get("stream") == f"pool:{pool}" and prev.get("full"):
+                prev["when"] = when
+                continue
+            wd = ROOT / "work" / f"preview_{slot['name']}"
+            try:
+                item = pool_builder(pool, sst, wd)
+                v = upload("preview", item["mp4"], f"{slot['name']}.mp4", "video/mp4")
+                light(item["mp4"], slot["name"], wd)
+                nxt[slot["name"]] = {"when": when, "stream": f"pool:{pool}", "occasion": occ, "label": item["label"],
+                                     "title": item.get("yt_title", ""), "full": f"{v}?v={stamp}",
+                                     "video": f"preview/{slot['name']}.mp4?v={stamp}", "cover": f"preview/{slot['name']}.jpg?v={stamp}",
+                                     "caption": item["caption"], "stamp": stamp, "yt_title": item.get("yt_title", ""),
+                                     "yt_desc": item.get("yt_desc", ""), "thumb_ms": item.get("thumb_ms", 1500),
+                                     "before": before, "after": sst, "queue": False, "time": slot["time"]}
+                continue
+            except Exception as e:  # noqa: BLE001
+                print(f"preview {slot['name']}: occasion {pool} not ready ({e})", flush=True)
+                if slot.get("stream") is None:
+                    nxt.pop(slot["name"], None)
+                    continue
+        if slot.get("stream") is None:
+            continue
         for stream in [slot["stream"]] + slot.get("fallback", []):
             sst = streams.setdefault(stream, {})
             before = key(sst)
@@ -162,6 +203,13 @@ def make_previews(st, schedule, builders, tz, only=None):
             break
         else:
             nxt.pop(slot["name"], None)
+    if not only:
+        for k in list(nxt):
+            if k not in live:
+                nxt.pop(k)
+    for slot, _ in plan:
+        if slot["name"] in nxt:
+            nxt[slot["name"]]["time"] = slot["time"]
     NEXT.write_text(json.dumps(nxt, ensure_ascii=False, indent=1), encoding="utf-8")
 
 

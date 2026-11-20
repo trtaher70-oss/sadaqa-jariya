@@ -1,0 +1,247 @@
+{
+ "_note": "قواعد المناسبات بالترتيب (الأول يغلب على نفس الموعد). hijri: الشهر/الأيام بتقويم أم القرى + تعديل data/hijri_adjust.json. weekday: 4 = الجمعة. slots: أي موعد يُستبدل محتواه. extra: منشور إضافي في ذلك اليوم.",
+ "rules": [
+  {
+   "name": "عيد الفطر",
+   "hijri": {
+    "m": [
+     10
+    ],
+    "d": [
+     1,
+     1
+    ]
+   },
+   "slots": {
+    "morning": "eid_fitr"
+   }
+  },
+  {
+   "name": "صيام ست من شوال",
+   "hijri": {
+    "m": [
+     10
+    ],
+    "d": [
+     2,
+     2
+    ]
+   },
+   "slots": {
+    "morning": "shawwal"
+   }
+  },
+  {
+   "name": "يوم عرفة",
+   "hijri": {
+    "m": [
+     12
+    ],
+    "d": [
+     9,
+     9
+    ]
+   },
+   "slots": {
+    "morning": "arafah"
+   },
+   "extra": [
+    {
+     "name": "occasion_asr",
+     "time": "16:30",
+     "pool": "arafah_dua"
+    }
+   ]
+  },
+  {
+   "name": "عيد الأضحى",
+   "hijri": {
+    "m": [
+     12
+    ],
+    "d": [
+     10,
+     10
+    ]
+   },
+   "slots": {
+    "morning": "eid_adha"
+   }
+  },
+  {
+   "name": "أيام التشريق",
+   "hijri": {
+    "m": [
+     12
+    ],
+    "d": [
+     11,
+     13
+    ]
+   },
+   "slots": {
+    "morning": "tashreeq"
+   }
+  },
+  {
+   "name": "رأس السنة الهجرية",
+   "hijri": {
+    "m": [
+     1
+    ],
+    "d": [
+     1,
+     1
+    ]
+   },
+   "slots": {
+    "morning": "hijra"
+   }
+  },
+  {
+   "name": "تاسوعاء وعاشوراء",
+   "hijri": {
+    "m": [
+     1
+    ],
+    "d": [
+     9,
+     10
+    ]
+   },
+   "slots": {
+    "morning": "ashura"
+   }
+  },
+  {
+   "name": "يوم الجمعة",
+   "weekday": 4,
+   "slots": {
+    "morning": "friday"
+   },
+   "extra": [
+    {
+     "name": "friday_asr",
+     "time": "16:30",
+     "pool": "friday_hour"
+    }
+   ]
+  },
+  {
+   "name": "العشر الأواخر من رمضان",
+   "hijri": {
+    "m": [
+     9
+    ],
+    "d": [
+     21,
+     30
+    ]
+   },
+   "slots": {
+    "morning": "qadr"
+   }
+  },
+  {
+   "name": "رمضان",
+   "hijri": {
+    "m": [
+     9
+    ],
+    "d": [
+     1,
+     20
+    ]
+   },
+   "slots": {
+    "morning": "ramadan"
+   }
+  },
+  {
+   "name": "العشر من ذي الحجة",
+   "hijri": {
+    "m": [
+     12
+    ],
+    "d": [
+     1,
+     8
+    ]
+   },
+   "slots": {
+    "morning": "dhulhijja"
+   }
+  },
+  {
+   "name": "رمضان على الأبواب",
+   "hijri": {
+    "m": [
+     8
+    ],
+    "d": [
+     25,
+     30
+    ]
+   },
+   "slots": {
+    "morning": "ramadan_soon"
+   }
+  },
+  {
+   "name": "دخول شعبان",
+   "hijri": {
+    "m": [
+     8
+    ],
+    "d": [
+     1,
+     1
+    ]
+   },
+   "slots": {
+    "morning": "shaban"
+   }
+  },
+  {
+   "name": "دخول شهر حرام",
+   "hijri": {
+    "m": [
+     7,
+     11
+    ],
+    "d": [
+     1,
+     1
+    ]
+   },
+   "slots": {
+    "morning": "sacred"
+   }
+  },
+  {
+   "name": "الأيام البيض (غداً)",
+   "hijri": {
+    "m": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     10,
+     11
+    ],
+    "d": [
+     12,
+     12
+    ]
+   },
+   "slots": {
+    "morning": "white_days"
+   }
+  }
+ ],
+ "from": "2026-11-21"
+}

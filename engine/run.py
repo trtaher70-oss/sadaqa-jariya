@@ -19,6 +19,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 import build  # noqa: E402
 import publish  # noqa: E402
 import queues as Q  # noqa: E402
+import calendar_hijri as H  # noqa: E402
+from due import slots_for  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = ROOT / "state" / "state.json"
@@ -61,14 +63,19 @@ def write_stats():
 
 def due_slots(st, now):
     today = now.date().isoformat()
-    out = []
-    for s in SCHED["slots"]:
-        if s.get("from") and today < s["from"]:
-            continue
-        hh, mm = map(int, s["time"].split(":"))
-        if (now.hour, now.minute) >= (hh, mm) and st["slots"].get(s["name"]) != today:
-            out.append(s)
-    return out
+    return [s for s in slots_for(now.date()) if (now.hour, now.minute) >= tuple(map(int, s["time"].split(":")))
+            and st["slots"].get(s["name"]) != today]
+
+
+def occasion_pool(slot, day):
+    """Pool that replaces this slot's content on `day` (Friday, Ramadan, Eid …), or None."""
+    occ_from = json.loads((ROOT / "data" / "occasions.json").read_text(encoding="utf-8")).get("from", "")
+    if day.isoformat() < occ_from:
+        return None, None
+    if slot.get("pool"):
+        return slot["pool"], slot.get("occasion")
+    hit = H.day_plan(day)["slots"].get(slot["name"])
+    return hit if hit else (None, None)
 
 
 def do_slot(st, slot, dry=False):
@@ -77,7 +84,20 @@ def do_slot(st, slot, dry=False):
     shutil.rmtree(wd, ignore_errors=True)
     streams = copy.deepcopy(st["streams"])
     item, used = None, None
-    for stream in [slot["stream"]] + slot.get("fallback", []):
+    pool, occ = occasion_pool(slot, now.date())
+    if pool:  # an occasion day: its own reel; if it cannot be made yet, the slot's normal content
+        psst = streams.setdefault(f"pool:{pool}", {})
+        try:
+            item = Q.use_preview(slot["name"], f"pool:{pool}", psst, wd) or build.build_pool(pool, psst, wd)
+            used = f"pool:{pool}"
+        except Exception as e:  # noqa: BLE001
+            print(f"[{slot['name']}] occasion {pool} not ready: {e}", flush=True)
+            item = None
+    if not item and not slot.get("stream"):  # extra occasion slot with nothing to post: skip quietly
+        st["slots"][slot["name"]] = now.date().isoformat()
+        print(f"[{slot['name']}] skipped (occasion reel not ready)", flush=True)
+        return
+    for stream in ([] if item else [slot["stream"]] + slot.get("fallback", [])):
         sst = streams.setdefault(stream, {})
         if stream in Q.QUEUES:
             item = Q.build_queue(stream, sst, wd)
@@ -107,7 +127,7 @@ def do_slot(st, slot, dry=False):
     if ok:  # content pointer advances only when something was really published
         st["streams"] = streams
     st["slots"][slot["name"]] = now.date().isoformat()
-    st["log"].append({"t": now.isoformat(timespec="minutes"), "slot": slot["name"], "stream": used, "item": item["label"],
+    st["log"].append({"t": now.isoformat(timespec="minutes"), "slot": slot["name"], "stream": used, "item": item["label"], "occasion": occ,
                       "results": results})
     print(json.dumps(results, ensure_ascii=False), flush=True)
     if not ok:
@@ -116,8 +136,14 @@ def do_slot(st, slot, dry=False):
 
 def previews(st, only=None):
     try:
-        Q.make_previews(st, SCHED, build.BUILDERS, TZ, only)
+        Q.make_previews(st, SCHED, build.BUILDERS, TZ, only, occasion=occasion_pool, extras=slots_for, pool_builder=build.build_pool)
     except Exception:  # a failed preview never blocks publishing
+        traceback.print_exc()
+    try:  # upcoming occasions for the dashboard
+        today = dt.datetime.now(TZ).date()
+        (ROOT / "state" / "calendar.json").write_text(json.dumps({"today_hijri": H.hijri_text(H.hijri(today)),
+            "upcoming": H.upcoming(today, 75)}, ensure_ascii=False, indent=1), encoding="utf-8")
+    except Exception:
         traceback.print_exc()
 
 

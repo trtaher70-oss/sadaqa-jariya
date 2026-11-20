@@ -264,23 +264,19 @@ def build_khatma(st, wd):
             "label": f"khatma {su}:{ayat[0]}-{ayat[-1]} {rk}"}
 
 
-def build_curated(st, wd):
-    items = json.loads((DATA / "curated.json").read_text(encoding="utf-8"))
-    i = st.get("i", 0)
-    cyc, it = i // len(items), items[i % len(items)]
-    st["i"] = i + 1
+def build_item(it, cyc, wd, start=0):
+    """Render one verse-based reel (curated dua / occasion): cycle `cyc` uses the cyc-th next reciter."""
     su, rng = it["aya"].split(":")
     lo, hi = (rng.split("-") + [rng])[:2]
     ayat = list(range(int(lo), int(hi) + 1))
     su = int(su)
     order = list(REC)
-    start = order.index(it["reciter"]) if it.get("reciter") in order else 0
-    for k in range(len(order)):  # cycle c uses the c-th next reciter that has these ayat
+    for k in range(len(order)):
         rk = order[(start + cyc + k) % len(order)]
         if usable(rk, su, ayat):
             break
     else:
-        raise RuntimeError(f"no reciter for {it['aya']}")
+        raise RuntimeError(f"no reciter with timings for {it['aya']} yet")
     props = props_for(rk, su, ayat, it["hook"], it["kind"], wd)
     mp4, thumb = render(props, wd)
     ref = f"سورة {SURAS[su - 1]} — الآية {ar(rng.replace('-', '–'))}"
@@ -288,7 +284,31 @@ def build_curated(st, wd):
     cap = (f"{it['hook']}\n\n{it['caption']}\n\nشاركها… لعلها تكون صدقة جارية لك 🤍\n\n"
            f"التلاوة: {REC[rk]['name']} · {ref}\n\n" + " ".join("#" + t for t in tags))
     return {"mp4": mp4, "thumb_ms": thumb, "caption": cap, "yt_title": f"{it['hook']} | {REC[rk]['name']}"[:100],
-            "yt_desc": cap, "label": f"curated {it['id']} {rk}"}
+            "yt_desc": cap, "label": f"{it.get('_label', 'curated')} {it['id']} {rk}"}
+
+
+def build_curated(st, wd):
+    items = json.loads((DATA / "curated.json").read_text(encoding="utf-8"))
+    i = st.get("i", 0)
+    it = items[i % len(items)]
+    order = list(REC)
+    start = order.index(it["reciter"]) if it.get("reciter") in order else 0
+    out = build_item(it, i // len(items), wd, start)
+    st["i"] = i + 1
+    return out
+
+
+POOLS = json.loads((DATA / "pools.json").read_text(encoding="utf-8"))
+
+
+def build_pool(pool, st, wd):
+    """Next reel of an occasion pool (Friday, Ramadan, Eid …). Each new cycle uses another reciter."""
+    items = POOLS[pool]
+    i = st.get("i", 0)
+    it = dict(items[i % len(items)], _label=f"occasion:{pool}")
+    out = build_item(it, i // len(items), wd, start=(sum(map(ord, it["id"])) % len(REC)))
+    st["i"] = i + 1
+    return out
 
 
 BUILDERS = {"khatma": build_khatma, "curated": build_curated}
