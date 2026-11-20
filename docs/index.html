@@ -71,6 +71,22 @@ th{color:var(--muted);font-weight:500;border-top:0}
 .occ:first-child{border-top:0}.occ .dd{flex:none;width:118px;color:var(--sand);font-weight:600}.occ .hj{flex:none;width:150px;color:var(--muted);font-size:13px}
 .occ .nm{flex:1}.tag{display:inline-block;background:rgba(194,165,107,.14);color:var(--gold);border-radius:8px;padding:1px 8px;margin:2px 0 2px 4px;font-size:12.5px}
 @media (max-width:620px){.occ{flex-wrap:wrap}.occ .hj{width:auto}}
+html,body{max-width:100%;overflow-x:hidden}
+.grid>*{min-width:0} img,video{max-width:100%}
+.nexts{grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),290px))!important}
+.media{grid-template-columns:repeat(auto-fill,minmax(min(140px,44%),1fr))}
+@media (max-width:640px){
+  .wrap{padding:16px 12px 48px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpi .v{font-size:24px}
+  .title h1{font-size:24px}
+  .pill{margin-inline-start:0}
+  .slot{flex-wrap:wrap}.slot .what{flex-basis:calc(100% - 100px)}
+  .occ .dd{width:auto}.occ .hj{width:auto}
+  .rec{grid-template-columns:96px 1fr 48px}
+  .nexts{grid-template-columns:1fr!important}
+  .nx{max-width:340px;margin:0 auto;width:100%}
+}
 footer{margin-top:22px;color:var(--muted);font-size:13px;text-align:center;font-family:Amiri,serif}
 .err{color:var(--bad);font-size:13px}
 .scroll{overflow-x:auto}

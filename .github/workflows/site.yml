@@ -1,0 +1,33 @@
+name: site
+# Re-publish the dashboard right away when it changes (the hourly job also re-publishes after each post).
+on:
+  push:
+    branches: [main]
+    paths: ["docs/**"]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: site
+  cancel-in-progress: true
+jobs:
+  site:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: assemble site
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p _site/preview && cp -r docs/. _site/
+          gh release download preview -p 'light-*' -D _light --clobber -R "$GITHUB_REPOSITORY" || true
+          for f in _light/light-*; do [ -f "$f" ] && cp "$f" "_site/preview/$(basename "$f" | sed 's/^light-//')"; done
+      - uses: actions/upload-pages-artifact@v3
+        with: {path: _site}
+      - id: deploy
+        uses: actions/deploy-pages@v4
