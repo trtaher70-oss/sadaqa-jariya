@@ -300,12 +300,16 @@ async function main() {
   let level = "ok", msg = "النشر يعمل";
   const rl = (runs.value?.workflow_runs || []).filter(r => r.name === "publish");
   const recent = rl.slice(0, 8);
-  const fails = recent.filter(r => r.conclusion === "failure").length;
+  const done = rl.filter(r => r.status === "completed");
+  const last = done[0];
+  const lastSched = rl.find(r => r.event === "schedule");
   const lastOk = published.length ? new Date(published[published.length - 1].t) : null;
   const activeSlots = (sched.value?.slots || []).filter(s => !s.from || td >= s.from).length;
-  if (fails >= 3) { level = "bad"; msg = "عدة محاولات فاشلة — راجع صفحة التشغيل"; }
-  else if (fails) { level = "warn"; msg = "محاولة فاشلة مؤخراً — النظام يعيد المحاولة"; }
+  const streak = (() => { let n = 0; for (const r of done) { if (r.conclusion === "failure") n++; else break; } return n; })();
+  if (streak >= 3) { level = "bad"; msg = "آخر ٣ محاولات فشلت — راجع صفحة التشغيل"; }
+  else if (streak >= 1) { level = "warn"; msg = "آخر محاولة فشلت — النظام يعيد المحاولة تلقائياً"; }
   else if (activeSlots && lastOk && Date.now() - lastOk > 30 * 36e5) { level = "warn"; msg = "لم يُنشر شيء منذ أكثر من يوم"; }
+  else if (lastSched && Date.now() - new Date(lastSched.created_at) > 3 * 36e5) { level = "warn"; msg = "التشغيل التلقائي متأخر — يُفحص"; }
   if (!rl.length && runs.status === "rejected") { level = "warn"; msg = "تعذّر فحص التشغيل الآن"; }
   $("health").className = "pill " + level; $("healthTxt").textContent = msg;
   $("runs").innerHTML = recent.length ? `<table><tbody>${recent.map(r => `<tr><td>${fmt(new Date(r.created_at), {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"})}</td>

@@ -3,7 +3,7 @@ name: publish
 # which also keeps the scheduled workflow alive.
 on:
   schedule:
-    - cron: "7 * * * *"
+    - cron: "7,37 * * * *"
   workflow_dispatch:
     inputs:
       slot:
