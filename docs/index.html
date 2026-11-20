@@ -300,12 +300,11 @@ async function main() {
   let level = "ok", msg = "النشر يعمل";
   const rl = (runs.value?.workflow_runs || []).filter(r => r.name === "publish");
   const recent = rl.slice(0, 8);
-  const done = rl.filter(r => r.status === "completed");
-  const last = done[0];
+  const finished = rl.filter(r => r.status === "completed");
   const lastSched = rl.find(r => r.event === "schedule");
   const lastOk = published.length ? new Date(published[published.length - 1].t) : null;
   const activeSlots = (sched.value?.slots || []).filter(s => !s.from || td >= s.from).length;
-  const streak = (() => { let n = 0; for (const r of done) { if (r.conclusion === "failure") n++; else break; } return n; })();
+  const streak = (() => { let n = 0; for (const r of finished) { if (r.conclusion === "failure") n++; else break; } return n; })();
   if (streak >= 3) { level = "bad"; msg = "آخر ٣ محاولات فشلت — راجع صفحة التشغيل"; }
   else if (streak >= 1) { level = "warn"; msg = "آخر محاولة فشلت — النظام يعيد المحاولة تلقائياً"; }
   else if (activeSlots && lastOk && Date.now() - lastOk > 30 * 36e5) { level = "warn"; msg = "لم يُنشر شيء منذ أكثر من يوم"; }
