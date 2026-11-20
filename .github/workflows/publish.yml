@@ -38,6 +38,20 @@ jobs:
         env:
           FORCE: ${{ github.event.inputs.slot }}
           PREV: ${{ github.event.inputs.preview }}
+      - name: account numbers (every check)
+        id: stats
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_TOKEN: ${{ secrets.IG_TOKEN }}
+        run: python3 engine/stats.py >> "$GITHUB_OUTPUT"
+      - name: save account numbers
+        if: steps.stats.outputs.changed == 'yes' && steps.due.outputs.due != 'yes'
+        run: |
+          git config user.name "sadaqa-bot"
+          git config user.email "sadaqa-bot@users.noreply.github.com"
+          git add state/stats.json
+          git commit -q -m "stats: $(date -u +%F' '%H:%M)"
+          for i in 1 2 3 4 5; do git pull -q --rebase origin main && git push -q && exit 0; sleep $((i * 5)); done
       - uses: actions/setup-python@v5
         if: steps.due.outputs.due == 'yes'
         with: {python-version: "3.12"}
