@@ -92,6 +92,7 @@ def surah_file(rid, su):
 
 def ayah_timing(rid, su):
     f = BASE / "mp3quran" / str(rid) / f"timing_{su:03d}.json"
+    f.parent.mkdir(parents=True, exist_ok=True)
     if not f.is_file():
         try:
             r = requests.get(f"https://www.mp3quran.net/api/v3/ayat_timing?surah={su}&read={rid}", headers=H, timeout=60)

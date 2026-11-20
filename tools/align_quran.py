@@ -120,10 +120,11 @@ def do_surah(rk, su):
         tm = {}
     for n in range(1, AYAT[su] + 1):
         qw = Q[f"{su}:{n}"]["w"]
-        sp, cov, i2 = place(qw, ww, i)
+        muq = all(C.qnorm(w) != C.norm(w) for w in qw)  # الم، حمٓ، يسٓ … : whisper can't hear these reliably
+        sp, cov, i2 = (None, 0, i) if muq else place(qw, ww, i)
         if not sp:  # not found right after the previous ayah: search a bit wider before giving up
             sp, cov, i2 = place(qw, ww, max(0, i - 10))
-        if not sp or cov < 0.6:  # whisper skipped / hallucinated here: re-listen to just this stretch with the ayah as prompt
+        if (not sp or cov < 0.6) and not muq:  # whisper skipped / hallucinated here: re-listen to just this stretch
             t_from = ww[i][1] - 1.0 if i < len(ww) else max(0, dur - 120)
             est = max(20.0, C.letters(" ".join(qw)) * 0.12)
             loc = C.whisper_words(src, max(0, t_from), min(dur, t_from + est * 3 + 20), " ".join(C.norm(w) for w in qw))
@@ -131,8 +132,9 @@ def do_surah(rk, su):
             if sp2 and cov2 > cov:
                 sp, cov = sp2, cov2
                 i2 = i
-                while i2 < len(ww) and ww[i2][1] < sp[-1][1] - 0.12:
-                    i2 += 1
+                if cov >= 0.6:  # only a good match moves the cursor
+                    while i2 < len(ww) and ww[i2][1] < sp[-1][1] - 0.12:
+                        i2 += 1
         if (not sp or cov < 0.6) and tm.get(n):  # last resort: the site's ayah timing, words spread by length
             s0, e0 = tm[n]
             L = [max(1, len(C.norm(w))) for w in qw]
@@ -141,11 +143,11 @@ def do_surah(rk, su):
                 sp.append((s0 + (e0 - s0) * acc / tot, s0 + (e0 - s0) * (acc + l) / tot))
                 acc += l
             cov = 0.6
-            while i2 < len(ww) and ww[i2][1] < e0 - 0.12:
-                i2 += 1
+            i2 = i  # a fallback never moves the cursor (the site's timing can run long)
         if sp:
             res["ayat"][str(n)] = {"w": [[round(s, 2), round(e, 2)] for s, e in sp], "cov": round(cov, 2)}
-            i = i2
+            if cov >= 0.6:
+                i = i2
         if not sp or cov < 0.6:
             low.append(n)
     out.parent.mkdir(parents=True, exist_ok=True)
