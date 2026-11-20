@@ -3,3 +3,4 @@ video/node_modules/
 video/public/clip/
 __pycache__/
 *.pyc
+downloads/

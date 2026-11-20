@@ -65,12 +65,31 @@ def transcribe(src, cache_json):
 
 
 def place(qwords, ww, start_i):
-    """Align one ayah in the words after index start_i. Returns (spans, cov, next index)."""
-    span = len(qwords) * 3 + 40
-    win = ww[start_i:start_i + span]
-    spans, cov = C.match(qwords, win)
-    if not spans:
-        return None, cov, start_i
+    """Align one ayah after index start_i. Widens the search when the first window fails (re-sync after a
+    skipped or misheard passage). A weak match never moves the cursor. Returns (spans, cov, next index)."""
+    best = None
+    t_from = ww[start_i][1] if start_i < len(ww) else 0.0
+    max_jump = max(40.0, C.letters(" ".join(qwords)) * 0.5)  # an ayah can't start minutes after the previous one
+    if len(qwords) <= 2:  # very short ayah (الم، طه، والضحى …): only right after the previous one
+        tries = ((8, 2),)
+    else:
+        tries = ((len(qwords) * 3 + 40, 0), (len(qwords) * 8 + 250, 5), (len(qwords) * 15 + 700, 20))
+    for span, back in tries:
+        s0 = max(0, start_i - back)
+        spans, cov = C.match(qwords, ww[s0:s0 + span])
+        if spans and spans[0][0] - t_from > max_jump:
+            spans, cov = None, 0
+        if spans and len(qwords) <= 2 and cov < 0.75:
+            spans, cov = None, 0
+        if spans and (best is None or cov > best[1]):
+            best = (spans, cov)
+        if spans and cov >= 0.75:
+            break
+    if not best:
+        return None, 0, start_i
+    spans, cov = best
+    if cov < 0.6:
+        return spans, cov, start_i
     end_t = spans[-1][1]
     nxt = start_i
     while nxt < len(ww) and ww[nxt][1] < end_t - 0.12:
@@ -80,7 +99,7 @@ def place(qwords, ww, start_i):
 
 def do_surah(rk, su):
     out = ROOT / "data" / "align" / rk / f"{su:03d}.json"
-    if out.is_file():
+    if out.is_file() and "--force" not in sys.argv:
         return None
     url = REC[rk]["server"] + f"{su:03d}.mp3"
     src = download(url, CACHE / rk / f"{su:03d}.mp3")
@@ -95,6 +114,10 @@ def do_surah(rk, su):
             res["basmala"] = [[round(s, 2), round(e, 2)] for s, e in sp]
             i = i2
     low = []
+    try:
+        tm = C.ayah_timing(REC[rk]["mp3quran"], su)
+    except Exception:  # noqa: BLE001
+        tm = {}
     for n in range(1, AYAT[su] + 1):
         qw = Q[f"{su}:{n}"]["w"]
         sp, cov, i2 = place(qw, ww, i)
@@ -110,6 +133,16 @@ def do_surah(rk, su):
                 i2 = i
                 while i2 < len(ww) and ww[i2][1] < sp[-1][1] - 0.12:
                     i2 += 1
+        if (not sp or cov < 0.6) and tm.get(n):  # last resort: the site's ayah timing, words spread by length
+            s0, e0 = tm[n]
+            L = [max(1, len(C.norm(w))) for w in qw]
+            tot, acc, sp = sum(L), 0, []
+            for l in L:
+                sp.append((s0 + (e0 - s0) * acc / tot, s0 + (e0 - s0) * (acc + l) / tot))
+                acc += l
+            cov = 0.6
+            while i2 < len(ww) and ww[i2][1] < e0 - 0.12:
+                i2 += 1
         if sp:
             res["ayat"][str(n)] = {"w": [[round(s, 2), round(e, 2)] for s, e in sp], "cov": round(cov, 2)}
             i = i2

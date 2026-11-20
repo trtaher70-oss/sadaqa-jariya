@@ -114,16 +114,37 @@ def ref_ratio(su, n):
     return v["timestamp_from"] / a["duration"], v["timestamp_to"] / a["duration"]
 
 
+NAMES = {"ا": "الف", "ل": "لام", "م": "ميم", "ص": "صاد", "ر": "را", "ك": "كاف", "ه": "ها", "ي": "يا", "ع": "عين",
+         "ط": "طا", "س": "سين", "ح": "حا", "ق": "قاف", "ن": "نون"}
+# the disconnected letters (الٓمٓ، حمٓ، يسٓ …) are recited by their names: «ألف لام ميم»
+MUQATTAAT = {"الم", "المص", "الر", "المر", "كهيعص", "طه", "طسم", "طس", "يس", "ص", "حم", "عسق", "ق", "ن"}
+
+
+def qnorm(w):
+    n = norm(w)
+    if n in MUQATTAAT and ("ٓ" in w or n in ("طه", "يس", "حم", "طس", "طسم")):
+        return "".join(NAMES.get(c, c) for c in n)
+    return n
+
+
 def match(qwords, ww):
     """Word-level semi-global alignment of the Quran words onto whisper's words (in order).
     Allows 1 whisper word = 2 Quran words (e.g. «وذنون» = «وذا النون») and 2 whisper words = 1 Quran word.
     Returns ([(s, e)] per Quran word, mean similarity 0..1)."""
     Q = [norm(w) for w in qwords]
+    ALT = {k: qnorm(w) for k, w in enumerate(qwords) if qnorm(w) != Q[k]}  # «الم» may be heard as «ألف لام ميم»
     Wn = [norm(w[0]) for w in ww]
     n, m = len(Wn), len(Q)
     if not n or not m:
         return None, 0
-    sim = lambda a, b: SequenceMatcher(None, a, b, autojunk=False).ratio() if a and b else 0.0
+    _sm = lambda a, b: SequenceMatcher(None, a, b, autojunk=False).ratio() if a and b else 0.0
+
+    def sim(a, b):
+        r = _sm(a, b)
+        for k, alt in ALT.items():
+            if b == Q[k]:
+                r = max(r, _sm(a, alt))
+        return r
     INF = 1e9
     SKIP_W, SKIP_Q = 0.3, 0.9  # extra heard words inside an ayah are cheap (reciters repeat phrases)
     # D[i][j]: best cost aligning Q[:j] ending at whisper index i (free start in W)
@@ -169,7 +190,7 @@ def match(qwords, ww):
             sims.append(0.0)
         i, j = pi, pj
     known = [k for k in range(m) if spans[k]]
-    if len(known) < max(2, m // 3):
+    if len(known) < max(1, m // 3):
         return None, sum(sims) / max(1, m)
     for k in range(m):  # unheard words: share the gap between their neighbours
         if spans[k] is None:
