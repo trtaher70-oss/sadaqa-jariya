@@ -4,9 +4,9 @@
    "i": 32
   },
   "khatma": {
-   "su": 1,
+   "su": 2,
    "n": 1,
-   "rot": 0,
+   "rot": 1,
    "khatma": 1
   },
   "podcast": {
@@ -18,6 +18,22 @@
    ]
   }
  },
- "slots": {},
- "log": []
+ "slots": {
+  "afternoon": "2026-11-20"
+ },
+ "log": [
+  {
+   "t": "2026-11-20T15:01+03:00",
+   "slot": "afternoon",
+   "stream": "khatma",
+   "item": "khatma 1:1-7 hazza",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "18140094934654479",
+     "url": "https://www.instagram.com/reel/Df9m5CQDvZe/"
+    }
+   }
+  }
+ ]
 }
