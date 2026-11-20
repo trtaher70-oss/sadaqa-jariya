@@ -34,6 +34,8 @@ for _k in Q:
     _s, _n = map(int, _k.split(":"))
     NAYAT[_s] = max(NAYAT.get(_s, 0), _n)
 H = {"User-Agent": "Mozilla/5.0"}
+# the owner's intention (niyyah) — added to every caption, no names
+DEDICATION = "🤍 هذا الحساب صدقة جارية عن صاحبه ووالديه وأهله وذريته ومن يحب، أحياءً وأمواتاً — لا تنسَهم من دعائك"
 
 
 # ------------------------------------------------------------------ helpers
@@ -258,6 +260,7 @@ def build_khatma(st, wd):
            f"التفسير الميسر:\n{taf}\n\n"
            f"شاركها… لعلها تكون صدقة جارية لك 🤍\n"
            f"التلاوة: {REC[rk]['name']}\n\n"
+           f"{DEDICATION}\n\n"
            f"#قرآن #تلاوة #{REC[rk]['tag']} #صدقة_جارية #تذكير")
     yt_title = f"سورة {SURAS[su - 1]} {rng} | {REC[rk]['name'].replace('القارئ ', '').replace('الشيخ ', '')} | تلاوة خاشعة"
     return {"mp4": mp4, "thumb_ms": thumb, "caption": cap, "yt_title": yt_title[:100], "yt_desc": cap,
@@ -282,7 +285,7 @@ def build_item(it, cyc, wd, start=0):
     ref = f"سورة {SURAS[su - 1]} — الآية {ar(rng.replace('-', '–'))}"
     tags = [t for t in it["tags"] if t != "قرآن"][:2] + [REC[rk]["tag"], "صدقة_جارية", "تذكير"]
     cap = (f"{it['hook']}\n\n{it['caption']}\n\nشاركها… لعلها تكون صدقة جارية لك 🤍\n\n"
-           f"التلاوة: {REC[rk]['name']} · {ref}\n\n" + " ".join("#" + t for t in tags))
+           f"التلاوة: {REC[rk]['name']} · {ref}\n\n{DEDICATION}\n\n" + " ".join("#" + t for t in tags))
     return {"mp4": mp4, "thumb_ms": thumb, "caption": cap, "yt_title": f"{it['hook']} | {REC[rk]['name']}"[:100],
             "yt_desc": cap, "label": f"{it.get('_label', 'curated')} {it['id']} {rk}"}
 
