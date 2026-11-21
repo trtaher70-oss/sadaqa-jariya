@@ -20,7 +20,7 @@
   }
  },
  "slots": {
-  "afternoon": "2026-11-20",
+  "afternoon": "2026-11-21",
   "morning": "2026-11-21"
  },
  "log": [
@@ -49,6 +49,21 @@
      "url": "https://www.instagram.com/reel/Df_igFiDYF3/"
     }
    }
+  },
+  {
+   "t": "2026-11-21T15:01+03:00",
+   "slot": "afternoon",
+   "stream": "khatma",
+   "item": "khatma 2:1-4 wadee",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "error": "instagram upload: {'debug_info': {'retriable': False, 'type': 'ProcessingFailedError', 'message': 'Request processing failed'}}"
+    }
+   }
   }
- ]
+ ],
+ "fails": {
+  "afternoon:2026-11-21": 1
+ }
 }
