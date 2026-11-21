@@ -35,3 +35,11 @@ jobs:
         with: {path: _site}
       - id: deploy
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: wait before retrying the deployment (GitHub sometimes can't find the artifact right away)
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 45
+      - id: deploy2
+        if: steps.deploy.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
