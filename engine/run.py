@@ -124,9 +124,10 @@ def do_slot(st, slot, dry=False):
         except Exception as e:  # noqa: BLE001  — keep the other platform; never re-post the same slot
             results[plat] = {"error": str(e)[:500]}
     ok = any("id" in r for r in results.values())
-    if ok:  # content pointer advances only when something was really published
+    if ok:  # content pointer advances and the slot counts as done only when something was really published
         st["streams"] = streams
-    st["slots"][slot["name"]] = now.date().isoformat()
+        st["slots"][slot["name"]] = now.date().isoformat()
+    # nothing published → slot stays open: the next run (30 min later) tries again, up to 3 times a day
     st["log"].append({"t": now.isoformat(timespec="minutes"), "slot": slot["name"], "stream": used, "item": item["label"], "occasion": occ,
                       "results": results})
     print(json.dumps(results, ensure_ascii=False), flush=True)

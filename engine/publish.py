@@ -10,8 +10,8 @@ import requests
 GRAPH = "https://graph.facebook.com/" + os.environ.get("GRAPH_VERSION", "v23.0")
 
 
-def instagram(mp4, caption, thumb_ms=1500):
-    uid, tok = os.environ["IG_USER_ID"], os.environ["IG_TOKEN"]
+def _ig_prepare(mp4, caption, thumb_ms, uid, tok):
+    """Container → upload → wait until Instagram has processed the video. Returns the container id."""
     c = requests.post(f"{GRAPH}/{uid}/media", data={"media_type": "REELS", "upload_type": "resumable", "caption": caption[:2200],
                                                     "share_to_feed": "true", "thumb_offset": str(thumb_ms), "access_token": tok},
                       timeout=120).json()
@@ -23,14 +23,32 @@ def instagram(mp4, caption, thumb_ms=1500):
                            headers={"Authorization": f"OAuth {tok}", "offset": "0", "file_size": str(size)}, data=f, timeout=900).json()
     if not up.get("success"):
         raise RuntimeError(f"instagram upload: {up}")
-    for _ in range(90):  # wait for Instagram to process the video
+    for _ in range(90):  # wait for Instagram to process the video (up to 15 min)
         st = requests.get(f"{GRAPH}/{c['id']}", params={"fields": "status_code,status", "access_token": tok}, timeout=60).json()
         if st.get("status_code") == "FINISHED":
-            break
+            return c["id"]
         if st.get("status_code") == "ERROR":
             raise RuntimeError(f"instagram processing: {st}")
         time.sleep(10)
-    pub = requests.post(f"{GRAPH}/{uid}/media_publish", data={"creation_id": c["id"], "access_token": tok}, timeout=120).json()
+    raise RuntimeError("instagram processing: not finished after 15 min")
+
+
+def instagram(mp4, caption, thumb_ms=1500):
+    uid, tok = os.environ["IG_USER_ID"], os.environ["IG_TOKEN"]
+    # Instagram sometimes fails to process an upload ("Request processing failed"): start over with a new
+    # container, up to 3 times. Nothing is visible before media_publish, so these retries can never double-post.
+    last = None
+    for attempt in range(3):
+        try:
+            cid = _ig_prepare(mp4, caption, thumb_ms, uid, tok)
+            break
+        except Exception as e:  # noqa: BLE001
+            last = e
+            print(f"instagram attempt {attempt + 1} failed: {e}", flush=True)
+            time.sleep(60 * (attempt + 1))
+    else:
+        raise RuntimeError(f"{last} (after 3 attempts)")
+    pub = requests.post(f"{GRAPH}/{uid}/media_publish", data={"creation_id": cid, "access_token": tok}, timeout=120).json()
     if "id" not in pub:
         raise RuntimeError(f"instagram publish: {pub}")
     link = requests.get(f"{GRAPH}/{pub['id']}", params={"fields": "permalink", "access_token": tok}, timeout=60).json()
