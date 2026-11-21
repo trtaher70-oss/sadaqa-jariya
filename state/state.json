@@ -14,12 +14,14 @@
   },
   "morning_queue": {
    "done": [
-    "01"
+    "01",
+    "02"
    ]
   }
  },
  "slots": {
-  "afternoon": "2026-11-20"
+  "afternoon": "2026-11-20",
+  "morning": "2026-11-21"
  },
  "log": [
   {
@@ -32,6 +34,19 @@
     "instagram": {
      "id": "18140094934654479",
      "url": "https://www.instagram.com/reel/Df9m5CQDvZe/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-21T09:01+03:00",
+   "slot": "morning",
+   "stream": "morning_queue",
+   "item": "morning_queue 02",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "17993312157097771",
+     "url": "https://www.instagram.com/reel/Df_igFiDYF3/"
     }
    }
   }
