@@ -36,9 +36,9 @@ def _ig_prepare(mp4, caption, thumb_ms, uid, tok):
 def instagram(mp4, caption, thumb_ms=1500):
     uid, tok = os.environ["IG_USER_ID"], os.environ["IG_TOKEN"]
     # Instagram sometimes fails to process an upload ("Request processing failed"): start over with a new
-    # container, up to 3 times. Nothing is visible before media_publish, so these retries can never double-post.
+    # container, up to 5 times. Nothing is visible before media_publish, so these retries can never double-post.
     last = None
-    for attempt in range(3):
+    for attempt in range(5):
         try:
             cid = _ig_prepare(mp4, caption, thumb_ms, uid, tok)
             break
@@ -47,7 +47,7 @@ def instagram(mp4, caption, thumb_ms=1500):
             print(f"instagram attempt {attempt + 1} failed: {e}", flush=True)
             time.sleep(60 * (attempt + 1))
     else:
-        raise RuntimeError(f"{last} (after 3 attempts)")
+        raise RuntimeError(f"{last} (after 5 attempts)")
     pub = requests.post(f"{GRAPH}/{uid}/media_publish", data={"creation_id": cid, "access_token": tok}, timeout=120).json()
     if "id" not in pub:
         raise RuntimeError(f"instagram publish: {pub}")
