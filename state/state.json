@@ -5,8 +5,8 @@
   },
   "khatma": {
    "su": 2,
-   "n": 5,
-   "rot": 2,
+   "n": 8,
+   "rot": 3,
    "khatma": 1
   },
   "podcast": {
@@ -23,7 +23,7 @@
   }
  },
  "slots": {
-  "afternoon": "2026-11-21",
+  "afternoon": "2026-11-22",
   "morning": "2026-11-22"
  },
  "log": [
@@ -88,6 +88,19 @@
     "instagram": {
      "id": "17920251018535963",
      "url": "https://www.instagram.com/reel/DgCHXcvGGWI/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-22T15:01+03:00",
+   "slot": "afternoon",
+   "stream": "khatma",
+   "item": "khatma 2:5-7 islam",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "18112361860921792",
+     "url": "https://www.instagram.com/reel/DgCwdJckius/"
     }
    }
   }
