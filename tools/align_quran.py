@@ -57,9 +57,17 @@ def transcribe(src, cache_json):
     pcm = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(src), "-f", "s16le", "-ac", "1", "-ar", "16000", "-"],
                          capture_output=True, check=True).stdout
     audio = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768.0
-    segs, _ = C.model().transcribe(audio, language="ar", word_timestamps=True, beam_size=5, vad_filter=True,
-                                   initial_prompt="بسم الله الرحمن الرحيم", hallucination_silence_threshold=1.0)
-    ww = [(w.word.strip(), round(w.start, 3), round(w.end, 3)) for s in segs for w in s.words]
+    ww = None
+    for vad in (True, False):  # the VAD filter crashes on a few files: transcribe those without it
+        try:
+            segs, _ = C.model().transcribe(audio, language="ar", word_timestamps=True, beam_size=5, vad_filter=vad,
+                                           initial_prompt="بسم الله الرحمن الرحيم", hallucination_silence_threshold=1.0)
+            ww = [(w.word.strip(), round(w.start, 3), round(w.end, 3)) for s in segs for w in s.words]
+            break
+        except Exception as e:  # noqa: BLE001
+            print(f"   transcribe (vad={vad}) failed: {e}", flush=True)
+    if ww is None:
+        raise RuntimeError("transcription failed")
     cache_json.write_text(json.dumps(ww, ensure_ascii=False), encoding="utf-8")
     return ww
 
@@ -127,8 +135,12 @@ def do_surah(rk, su):
         if (not sp or cov < 0.6) and not muq:  # whisper skipped / hallucinated here: re-listen to just this stretch
             t_from = ww[i][1] - 1.0 if i < len(ww) else max(0, dur - 120)
             est = max(20.0, C.letters(" ".join(qw)) * 0.12)
-            loc = C.whisper_words(src, max(0, t_from), min(dur, t_from + est * 3 + 20), " ".join(C.norm(w) for w in qw))
-            sp2, cov2 = C.match(qw, loc)
+            try:  # faster-whisper's word-timing step can crash on a tiny window: then just skip the re-listen
+                loc = C.whisper_words(src, max(0, t_from), min(dur, t_from + est * 3 + 20), " ".join(C.norm(w) for w in qw))
+            except Exception as e:  # noqa: BLE001
+                print(f"   re-listen {rk} {su}:{n} skipped: {str(e)[:80]}", flush=True)
+                loc = []
+            sp2, cov2 = C.match(qw, loc) if loc else (None, 0)
             if sp2 and cov2 > cov:
                 sp, cov = sp2, cov2
                 i2 = i
