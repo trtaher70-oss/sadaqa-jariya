@@ -16,6 +16,11 @@ def slots_for(day):
     sched = json.loads((ROOT / "data" / "schedule.json").read_text(encoding="utf-8"))["slots"]
     occ_from = json.loads((ROOT / "data" / "occasions.json").read_text(encoding="utf-8")).get("from", "")
     out = [s for s in sched if not s.get("from") or day.isoformat() >= s["from"]]
+    try:  # trial-reel slots only once Instagram allows them (1000 followers)
+        fol = int(json.loads((ROOT / "state" / "stats.json").read_text(encoding="utf-8")).get("followers") or 0)
+    except Exception:  # noqa: BLE001
+        fol = 0
+    out = [s for s in out if not s.get("trial_only") or fol >= 1000]
     if day.isoformat() >= occ_from:
         out += [dict(e, stream=None) for e in H.day_plan(day)["extra"]]
     return out

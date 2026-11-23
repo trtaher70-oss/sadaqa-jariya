@@ -2,6 +2,7 @@
   IG_USER_ID, IG_TOKEN            Instagram professional account id + (system-user) access token
   YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN   YouTube (optional)
 """
+import json
 import os
 import time
 
@@ -10,11 +11,19 @@ import requests
 GRAPH = "https://graph.facebook.com/" + os.environ.get("GRAPH_VERSION", "v23.0")
 
 
-def _ig_prepare(mp4, caption, thumb_ms, uid, tok):
+class NotEligible(Exception):
+    """Instagram refuses trial reels for this account (needs more followers)."""
+
+
+def _ig_prepare(mp4, caption, thumb_ms, uid, tok, trial=None):
     """Container → upload → wait until Instagram has processed the video. Returns the container id."""
-    c = requests.post(f"{GRAPH}/{uid}/media", data={"media_type": "REELS", "upload_type": "resumable", "caption": caption[:2200],
-                                                    "share_to_feed": "true", "thumb_offset": str(thumb_ms), "access_token": tok},
-                      timeout=120).json()
+    data = {"media_type": "REELS", "upload_type": "resumable", "caption": caption[:2200],
+            "share_to_feed": "true", "thumb_offset": str(thumb_ms), "access_token": tok}
+    if trial:  # Trial reel: shown to non-followers first; SS_PERFORMANCE = shared to followers if it performs well
+        data["trial_params"] = json.dumps({"graduation_strategy": trial})
+    c = requests.post(f"{GRAPH}/{uid}/media", data=data, timeout=120).json()
+    if c.get("error", {}).get("error_subcode") == 2207081:
+        raise NotEligible(c["error"].get("error_user_msg", "trial reels not available"))
     if "id" not in c:
         raise RuntimeError(f"instagram container: {c}")
     size = os.path.getsize(mp4)
@@ -33,15 +42,17 @@ def _ig_prepare(mp4, caption, thumb_ms, uid, tok):
     raise RuntimeError("instagram processing: not finished after 15 min")
 
 
-def instagram(mp4, caption, thumb_ms=1500):
+def instagram(mp4, caption, thumb_ms=1500, trial=None):
     uid, tok = os.environ["IG_USER_ID"], os.environ["IG_TOKEN"]
     # Instagram sometimes fails to process an upload ("Request processing failed"): start over with a new
     # container, up to 5 times. Nothing is visible before media_publish, so these retries can never double-post.
     last = None
     for attempt in range(5):
         try:
-            cid = _ig_prepare(mp4, caption, thumb_ms, uid, tok)
+            cid = _ig_prepare(mp4, caption, thumb_ms, uid, tok, trial)
             break
+        except NotEligible:
+            raise
         except Exception as e:  # noqa: BLE001
             last = e
             print(f"instagram attempt {attempt + 1} failed: {e}", flush=True)

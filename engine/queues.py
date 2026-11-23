@@ -114,6 +114,13 @@ def next_date(slot, now):
     return d
 
 
+def trial_ok():
+    try:
+        return int(json.loads((ROOT / "state" / "stats.json").read_text(encoding="utf-8")).get("followers") or 0) >= 1000
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def make_previews(st, schedule, builders, tz, only=None, occasion=None, extras=None, pool_builder=None):
     """Prepare the next reel of every slot (incl. occasion days and their extra posts); write state/next.json."""
     now = dt.datetime.now(tz)
@@ -134,6 +141,8 @@ def make_previews(st, schedule, builders, tz, only=None, occasion=None, extras=N
     live = set()
     for slot, day in plan:
         if only and slot["name"] != only:
+            continue
+        if slot.get("trial_only") and not trial_ok():
             continue
         live.add(slot["name"])
         streams = copy.deepcopy(st["streams"])

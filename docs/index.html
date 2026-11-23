@@ -198,7 +198,7 @@ const fmt = (d, o) => new Intl.DateTimeFormat("ar", {timeZone: TZ, ...o}).format
 const todayTR = () => new Intl.DateTimeFormat("en-CA", {timeZone: TZ}).format(new Date());
 const nowHM = () => { const p = new Intl.DateTimeFormat("en-GB", {timeZone: TZ, hour: "2-digit", minute: "2-digit", hour12: false}).format(new Date()); return p; };
 const HM12 = s => { const [h, m] = s.split(":").map(Number); return AR(`${h % 12 || 12}:${String(m).padStart(2, "0")}`) + (h < 12 ? " ص" : " م"); };
-const STREAM = {curated: "آية أو دعاء", morning_queue: "آية أو دعاء", khatma: "ختمة القرآن", podcast: "بودكاست", podcast_queue: "بودكاست"};
+const STREAM = {curated_trial: "اكتشاف — ريل تجريبي", curated: "آية أو دعاء", morning_queue: "آية أو دعاء", khatma: "ختمة القرآن", podcast: "بودكاست", podcast_queue: "بودكاست"};
 const PLAT = {instagram: "إنستغرام", youtube: "يوتيوب"};
 
 async function j(url) { const r = await fetch(url, {cache: "no-store"}); if (!r.ok) throw new Error(r.status); return r.json(); }
@@ -260,7 +260,8 @@ async function main() {
     const entry = [...log].reverse().find(e => e.slot === s.name && e.t.startsWith(td));
     const active = !s.from || td >= s.from;
     let cls, txt, sub = STREAM[s.stream] + (s.fallback ? " (أو " + s.fallback.map(f => STREAM[f]).join("، ") + ")" : "");
-    if (!active) { cls = "later"; txt = "يبدأ " + fmt(new Date(s.from + "T12:00:00"), {day: "numeric", month: "long"}); }
+    if (s.trial_only && (stats.value?.followers || 0) < 1000) { cls = "later"; txt = "عند ١٠٠٠ متابع"; sub = "يُعرض لغير المتابعين أولاً، ويُشارك مع المتابعين إن نجح — شرط إنستغرام: ١٠٠٠ متابع"; }
+    else if (!active) { cls = "later"; txt = "يبدأ " + fmt(new Date(s.from + "T12:00:00"), {day: "numeric", month: "long"}); }
     else if (entry) {
       const ok = Object.values(entry.results || {}).some(r => r.id);
       cls = ok ? "done" : "fail"; txt = ok ? "نُشر ✓" : "فشل";

@@ -61,6 +61,17 @@ def write_stats():
         print("stats skipped:", e)
 
 
+TRIAL_MIN = 1000  # Instagram's follower requirement for trial reels
+
+
+def trial_ready():
+    """Followers (refreshed every check in state/stats.json) meet Instagram's requirement for trial reels."""
+    try:
+        return int(json.loads((ROOT / "state" / "stats.json").read_text(encoding="utf-8")).get("followers") or 0) >= TRIAL_MIN
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def due_slots(st, now):
     today = now.date().isoformat()
     return [s for s in slots_for(now.date()) if (now.hour, now.minute) >= tuple(map(int, s["time"].split(":")))
@@ -82,6 +93,10 @@ def do_slot(st, slot, dry=False):
     now = dt.datetime.now(TZ)
     wd = ROOT / "work" / slot["name"]
     shutil.rmtree(wd, ignore_errors=True)
+    if slot.get("trial_only") and not trial_ready():  # discovery slot waits until Instagram allows trial reels
+        st["slots"][slot["name"]] = now.date().isoformat()
+        print(f"[{slot['name']}] trial reels need {TRIAL_MIN} followers — skipped", flush=True)
+        return
     streams = copy.deepcopy(st["streams"])
     item, used = None, None
     pool, occ = occasion_pool(slot, now.date())
@@ -118,7 +133,16 @@ def do_slot(st, slot, dry=False):
             continue
         try:
             if plat == "instagram":
-                results[plat] = publish.instagram(item["mp4"], item["caption"], item.get("thumb_ms", 1500))
+                try:
+                    results[plat] = publish.instagram(item["mp4"], item["caption"], item.get("thumb_ms", 1500), slot.get("trial"))
+                    if slot.get("trial"):
+                        results[plat]["trial"] = slot["trial"]
+                except publish.NotEligible as e:
+                    if slot.get("trial_only"):
+                        st["slots"][slot["name"]] = now.date().isoformat()
+                        print(f"[{slot['name']}] {e} — skipped", flush=True)
+                        return
+                    results[plat] = publish.instagram(item["mp4"], item["caption"], item.get("thumb_ms", 1500))
             elif plat == "youtube":
                 results[plat] = publish.youtube(item.get("mp4_yt") or item["mp4"], item["yt_title"], item["yt_desc"], item.get("tags"))
         except Exception as e:  # noqa: BLE001  — keep the other platform; never re-post the same slot

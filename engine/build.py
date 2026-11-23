@@ -314,4 +314,16 @@ def build_pool(pool, st, wd):
     return out
 
 
-BUILDERS = {"khatma": build_khatma, "curated": build_curated}
+def build_curated_trial(st, wd):
+    """Discovery slot: the dua/reminder list on its own pointer, voiced by other reciters than the morning cycle."""
+    items = json.loads((DATA / "curated.json").read_text(encoding="utf-8"))
+    i = st.get("i", 0)
+    it = dict(items[i % len(items)], _label="discover")
+    order = list(REC)
+    start = (order.index(it["reciter"]) if it.get("reciter") in order else 0) + 5
+    out = build_item(it, i // len(items), wd, start)
+    st["i"] = i + 1
+    return out
+
+
+BUILDERS = {"khatma": build_khatma, "curated": build_curated, "curated_trial": build_curated_trial}

@@ -34,6 +34,18 @@
     "youtube"
    ],
    "from": "2026-11-24"
+  },
+  {
+   "name": "discover",
+   "time": "18:00",
+   "stream": "curated_trial",
+   "platforms": [
+    "instagram"
+   ],
+   "trial": "SS_PERFORMANCE",
+   "trial_only": true,
+   "from": "2026-11-25"
   }
- ]
+ ],
+ "_trial": "discover: ريل تجريبي (Trial) يُعرض لغير المتابعين أولاً، ويُشارك مع المتابعين تلقائياً إن نجح. يعمل تلقائياً عند 1000 متابع (شرط إنستغرام)."
 }
