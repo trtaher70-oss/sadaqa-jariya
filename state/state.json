@@ -15,7 +15,8 @@
   "morning_queue": {
    "done": [
     "01",
-    "02"
+    "02",
+    "03"
    ]
   },
   "pool:white_days": {
@@ -24,7 +25,7 @@
  },
  "slots": {
   "afternoon": "2026-11-22",
-  "morning": "2026-11-22"
+  "morning": "2026-11-23"
  },
  "log": [
   {
@@ -101,6 +102,19 @@
     "instagram": {
      "id": "18112361860921792",
      "url": "https://www.instagram.com/reel/DgCwdJckius/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-23T09:01+03:00",
+   "slot": "morning",
+   "stream": "morning_queue",
+   "item": "morning_queue 03",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "18131240920849298",
+     "url": "https://www.instagram.com/reel/DgEsEXwCCXG/"
     }
    }
   }
