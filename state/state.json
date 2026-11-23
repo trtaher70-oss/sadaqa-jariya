@@ -5,8 +5,8 @@
   },
   "khatma": {
    "su": 2,
-   "n": 8,
-   "rot": 3,
+   "n": 11,
+   "rot": 4,
    "khatma": 1
   },
   "podcast": {
@@ -24,7 +24,7 @@
   }
  },
  "slots": {
-  "afternoon": "2026-11-22",
+  "afternoon": "2026-11-23",
   "morning": "2026-11-23"
  },
  "log": [
@@ -115,6 +115,19 @@
     "instagram": {
      "id": "18131240920849298",
      "url": "https://www.instagram.com/reel/DgEsEXwCCXG/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-23T15:00+03:00",
+   "slot": "afternoon",
+   "stream": "khatma",
+   "item": "khatma 2:8-10 mansour",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "17929648833203478",
+     "url": "https://www.instagram.com/reel/DgFVOcpjOkm/"
     }
    }
   }
