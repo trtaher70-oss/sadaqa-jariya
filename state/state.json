@@ -10,7 +10,9 @@
    "khatma": 1
   },
   "podcast": {
-   "done": []
+   "done": [
+    "13"
+   ]
   },
   "morning_queue": {
    "done": [
@@ -26,7 +28,8 @@
  },
  "slots": {
   "afternoon": "2026-11-24",
-  "morning": "2026-11-24"
+  "morning": "2026-11-24",
+  "evening": "2026-11-24"
  },
  "log": [
   {
@@ -155,6 +158,23 @@
     "instagram": {
      "id": "18122822140766301",
      "url": "https://www.instagram.com/reel/DgH64fNETL0/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-24T21:00+03:00",
+   "slot": "evening",
+   "stream": "podcast",
+   "item": "podcast 13",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "17968476486208873",
+     "url": "https://www.instagram.com/reel/DgIkHusisZP/"
+    },
+    "youtube": {
+     "id": "If6WXU8f_IE",
+     "url": "https://youtube.com/shorts/If6WXU8f_IE"
     }
    }
   }
