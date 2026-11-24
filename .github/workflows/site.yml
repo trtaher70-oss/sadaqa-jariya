@@ -20,6 +20,7 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with: {ref: main}
       - name: check dashboard code (a broken page is never published)
         run: |
           python3 -c "import re; t=open('docs/index.html',encoding='utf-8').read(); open('/tmp/d.mjs','w',encoding='utf-8').write(re.findall(r'<script>(.*?)</script>', t, re.S)[-1])"

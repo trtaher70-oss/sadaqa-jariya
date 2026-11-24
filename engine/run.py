@@ -128,6 +128,15 @@ def do_slot(st, slot, dry=False):
         print(item["caption"][:600])
         return
     results = {}
+    if "instagram" in slot["platforms"] and publish.enabled("instagram"):
+        dup = publish.ig_already_posted(item["caption"])
+        if dup:  # already published by an earlier run whose state was lost: mark done, post nowhere again
+            st["streams"] = streams
+            st["slots"][slot["name"]] = now.date().isoformat()
+            st["log"].append({"t": now.isoformat(timespec="minutes"), "slot": slot["name"], "stream": used, "item": item["label"],
+                              "occasion": occ, "results": {"instagram": {"id": "already", "url": dup, "note": "منشور مسبقاً — لم يُكرَّر"}}})
+            print(f"[{slot['name']}] already on Instagram ({dup}) — not posted again", flush=True)
+            return
     for plat in slot["platforms"]:
         if not publish.enabled(plat):
             continue

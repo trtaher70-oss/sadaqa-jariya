@@ -2,6 +2,7 @@
   IG_USER_ID, IG_TOKEN            Instagram professional account id + (system-user) access token
   YT_CLIENT_ID, YT_CLIENT_SECRET, YT_REFRESH_TOKEN   YouTube (optional)
 """
+import calendar
 import json
 import os
 import time
@@ -42,8 +43,35 @@ def _ig_prepare(mp4, caption, thumb_ms, uid, tok, trial=None):
     raise RuntimeError("instagram processing: not finished after 15 min")
 
 
+class AlreadyPosted(Exception):
+    """The same reel is already on the account (e.g. a previous run published it but could not save its state)."""
+
+
+def ig_already_posted(caption, hours=20):
+    """Permalink of a reel with the same caption opening posted in the last `hours`, or None."""
+    uid, tok = os.environ["IG_USER_ID"], os.environ["IG_TOKEN"]
+    head = (caption or "").strip()[:200]
+    try:
+        d = requests.get(f"{GRAPH}/{uid}/media", params={"fields": "caption,timestamp,permalink", "limit": 15,
+                                                         "access_token": tok}, timeout=60).json()
+    except Exception:  # noqa: BLE001
+        return None
+    now = time.time()
+    for m in d.get("data", []):
+        try:
+            age = now - calendar.timegm(time.strptime(m["timestamp"][:19], "%Y-%m-%dT%H:%M:%S"))
+        except Exception:  # noqa: BLE001
+            continue
+        if age < hours * 3600 and (m.get("caption") or "").strip()[:200] == head:
+            return m.get("permalink") or m.get("id")
+    return None
+
+
 def instagram(mp4, caption, thumb_ms=1500, trial=None):
     uid, tok = os.environ["IG_USER_ID"], os.environ["IG_TOKEN"]
+    dup = ig_already_posted(caption)
+    if dup:  # never post the same reel twice
+        raise AlreadyPosted(dup)
     # Instagram sometimes fails to process an upload ("Request processing failed"): start over with a new
     # container, up to 5 times. Nothing is visible before media_publish, so these retries can never double-post.
     last = None

@@ -32,6 +32,7 @@ jobs:
       due: ${{ steps.due.outputs.due }}
     steps:
       - uses: actions/checkout@v4
+        with: {ref: main}
       - name: what is due
         id: due
         run: python3 engine/due.py >> "$GITHUB_OUTPUT"
@@ -51,7 +52,7 @@ jobs:
           git config user.email "sadaqa-bot@users.noreply.github.com"
           git add state/stats.json
           git commit -q -m "stats: $(date -u +%F' '%H:%M)"
-          for i in 1 2 3 4 5; do git pull -q --rebase origin main && git push -q && exit 0; sleep $((i * 5)); done
+          for i in 1 2 3 4 5; do { git pull -q --rebase -X theirs origin main || { git rebase --abort; false; }; } && git push -q && exit 0; sleep $((i * 5)); done
       - uses: actions/setup-python@v5
         if: steps.due.outputs.due == 'yes'
         with: {python-version: "3.12"}
@@ -103,7 +104,7 @@ jobs:
           git add state/
           git diff --cached --quiet && exit 0
           git commit -q -m "state: $(date -u +%F' '%H:%M)"
-          for i in 1 2 3 4 5; do git pull -q --rebase origin main && git push -q && exit 0; sleep $((i * 5)); done
+          for i in 1 2 3 4 5; do { git pull -q --rebase -X theirs origin main || { git rebase --abort; false; }; } && git push -q && exit 0; sleep $((i * 5)); done
           exit 1
   site:
     # the dashboard (docs/) + phone-friendly copies of the next reels, published to GitHub Pages
@@ -115,6 +116,7 @@ jobs:
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with: {ref: main}
         with: {ref: main}
       - name: check dashboard code (a broken page is never published)
         run: |
@@ -147,9 +149,10 @@ jobs:
     if: github.event_name == 'schedule'
     steps:
       - uses: actions/checkout@v4
+        with: {ref: main}
       - run: |
           if [ "$(date -u +%d%H)" = "0103" ]; then
             date -u +%F > state/alive.txt
             git config user.name "sadaqa-bot"; git config user.email "sadaqa-bot@users.noreply.github.com"
-            git add state/alive.txt && git commit -q -m "keepalive" && git pull -q --rebase origin main && git push -q
+            git add state/alive.txt && git commit -q -m "keepalive" && { git pull -q --rebase -X theirs origin main || { git rebase --abort; false; }; } && git push -q
           fi
