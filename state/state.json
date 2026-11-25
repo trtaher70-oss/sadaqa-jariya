@@ -11,7 +11,8 @@
   },
   "podcast": {
    "done": [
-    "13"
+    "13",
+    "09"
    ]
   },
   "morning_queue": {
@@ -33,7 +34,7 @@
  "slots": {
   "afternoon": "2026-11-25",
   "morning": "2026-11-25",
-  "evening": "2026-11-24",
+  "evening": "2026-11-25",
   "discover": "2026-11-25"
  },
  "log": [
@@ -219,6 +220,22 @@
     "instagram": {
      "id": "17966319072229928",
      "url": "https://www.instagram.com/reel/DgKzkfWqJEF/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-25T21:01+03:00",
+   "slot": "evening",
+   "stream": "podcast",
+   "item": "podcast 09",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "error": "instagram upload: {'debug_info': {'retriable': False, 'type': 'ProcessingFailedError', 'message': 'Request processing failed'}} (after 5 attempts)"
+    },
+    "youtube": {
+     "id": "zHITwveVCrM",
+     "url": "https://youtube.com/shorts/zHITwveVCrM"
     }
    }
   }
