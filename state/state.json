@@ -5,8 +5,8 @@
   },
   "khatma": {
    "su": 2,
-   "n": 14,
-   "rot": 5,
+   "n": 17,
+   "rot": 6,
    "khatma": 1
   },
   "podcast": {
@@ -28,7 +28,7 @@
   }
  },
  "slots": {
-  "afternoon": "2026-11-24",
+  "afternoon": "2026-11-25",
   "morning": "2026-11-25",
   "evening": "2026-11-24"
  },
@@ -189,6 +189,19 @@
     "instagram": {
      "id": "18055031783606070",
      "url": "https://www.instagram.com/reel/DgJ1u9qT1pA/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-25T15:00+03:00",
+   "slot": "afternoon",
+   "stream": "khatma",
+   "item": "khatma 2:14-16 nufais",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "18065084816538426",
+     "url": "https://www.instagram.com/reel/DgKfRzrN8Oy/"
     }
    }
   }
