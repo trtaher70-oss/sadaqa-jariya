@@ -3,7 +3,7 @@
  "slots": [
   {
    "name": "morning",
-   "time": "09:00",
+   "time": "12:00",
    "stream": "morning_queue",
    "platforms": [
     "instagram"
