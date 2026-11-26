@@ -36,7 +36,7 @@
   "afternoon": "2026-11-26",
   "morning": "2026-11-26",
   "evening": "2026-11-25",
-  "discover": "2026-11-25"
+  "discover": "2026-11-26"
  },
  "log": [
   {
@@ -289,9 +289,21 @@
      "error": "instagram container: {'error': {'message': 'Invalid parameter', 'code': 100, 'type': 'FacebookApiException', 'fbtrace_id': 'AwsGjBZgUVQ00ErXg5iUYlL'}} (after 5 attempts)"
     }
    }
+  },
+  {
+   "t": "2026-11-26T18:35+03:00",
+   "slot": "discover",
+   "stream": "curated_trial",
+   "item": "discover 02 luhaidan",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "error": "instagram container: {'error': {'message': 'Invalid parameter', 'code': 100, 'type': 'FacebookApiException', 'fbtrace_id': 'AR6fZUIgFTdgrqdBvxEgg7D'}} (after 5 attempts)"
+    }
+   }
   }
  ],
  "fails": {
-  "discover:2026-11-26": 2
+  "discover:2026-11-26": 3
  }
 }
