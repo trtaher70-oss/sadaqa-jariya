@@ -21,7 +21,8 @@
     "02",
     "03",
     "04",
-    "05"
+    "05",
+    "06"
    ]
   },
   "pool:white_days": {
@@ -33,7 +34,7 @@
  },
  "slots": {
   "afternoon": "2026-11-25",
-  "morning": "2026-11-25",
+  "morning": "2026-11-26",
   "evening": "2026-11-25",
   "discover": "2026-11-25"
  },
@@ -236,6 +237,19 @@
     "youtube": {
      "id": "zHITwveVCrM",
      "url": "https://youtube.com/shorts/zHITwveVCrM"
+    }
+   }
+  },
+  {
+   "t": "2026-11-26T12:05+03:00",
+   "slot": "morning",
+   "stream": "morning_queue",
+   "item": "morning_queue 06",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "18139124377641789",
+     "url": "https://www.instagram.com/reel/DgMvfJtz2oS/"
     }
    }
   }
