@@ -12,7 +12,8 @@
   "podcast": {
    "done": [
     "13",
-    "09"
+    "09",
+    "11"
    ]
   },
   "morning_queue": {
@@ -35,7 +36,7 @@
  "slots": {
   "afternoon": "2026-11-26",
   "morning": "2026-11-26",
-  "evening": "2026-11-25",
+  "evening": "2026-11-26",
   "discover": "2026-11-26"
  },
  "log": [
@@ -299,6 +300,22 @@
    "results": {
     "instagram": {
      "error": "instagram container: {'error': {'message': 'Invalid parameter', 'code': 100, 'type': 'FacebookApiException', 'fbtrace_id': 'AR6fZUIgFTdgrqdBvxEgg7D'}} (after 5 attempts)"
+    }
+   }
+  },
+  {
+   "t": "2026-11-26T21:01+03:00",
+   "slot": "evening",
+   "stream": "podcast",
+   "item": "podcast 11",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "error": "instagram upload: {'debug_info': {'retriable': False, 'type': 'ProcessingFailedError', 'message': 'Request processing failed'}} (after 5 attempts)"
+    },
+    "youtube": {
+     "id": "rxelskSWFfU",
+     "url": "https://youtube.com/shorts/rxelskSWFfU"
     }
    }
   }
