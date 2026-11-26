@@ -277,9 +277,21 @@
      "error": "instagram container: {'error': {'message': 'Invalid parameter', 'code': 100, 'type': 'FacebookApiException', 'fbtrace_id': 'A6CnP7Fe1nTncXh5SUfpkKK'}} (after 5 attempts)"
     }
    }
+  },
+  {
+   "t": "2026-11-26T18:18+03:00",
+   "slot": "discover",
+   "stream": "curated_trial",
+   "item": "discover 02 luhaidan",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "error": "instagram container: {'error': {'message': 'Invalid parameter', 'code': 100, 'type': 'FacebookApiException', 'fbtrace_id': 'AwsGjBZgUVQ00ErXg5iUYlL'}} (after 5 attempts)"
+    }
+   }
   }
  ],
  "fails": {
-  "discover:2026-11-26": 1
+  "discover:2026-11-26": 2
  }
 }
