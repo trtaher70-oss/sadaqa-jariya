@@ -5,8 +5,8 @@
   },
   "khatma": {
    "su": 2,
-   "n": 17,
-   "rot": 6,
+   "n": 20,
+   "rot": 7,
    "khatma": 1
   },
   "podcast": {
@@ -33,7 +33,7 @@
   }
  },
  "slots": {
-  "afternoon": "2026-11-25",
+  "afternoon": "2026-11-26",
   "morning": "2026-11-26",
   "evening": "2026-11-25",
   "discover": "2026-11-25"
@@ -250,6 +250,19 @@
     "instagram": {
      "id": "18139124377641789",
      "url": "https://www.instagram.com/reel/DgMvfJtz2oS/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-26T15:00+03:00",
+   "slot": "afternoon",
+   "stream": "khatma",
+   "item": "khatma 2:17-19 idrees",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "17913972858666889",
+     "url": "https://www.instagram.com/reel/DgNEEPpyxR0/"
     }
    }
   }
