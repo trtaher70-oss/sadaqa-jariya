@@ -318,9 +318,22 @@
      "url": "https://youtube.com/shorts/rxelskSWFfU"
     }
    }
+  },
+  {
+   "t": "2026-11-27T12:01+03:00",
+   "slot": "morning",
+   "stream": "pool:friday",
+   "item": "occasion:friday fr1 nufais",
+   "occasion": "يوم الجمعة",
+   "results": {
+    "instagram": {
+     "error": "instagram upload: {'debug_info': {'retriable': False, 'type': 'ProcessingFailedError', 'message': 'Request processing failed'}} (after 5 attempts)"
+    }
+   }
   }
  ],
  "fails": {
-  "discover:2026-11-26": 3
+  "discover:2026-11-26": 3,
+  "morning:2026-11-27": 1
  }
 }
