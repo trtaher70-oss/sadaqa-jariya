@@ -5,8 +5,8 @@
   },
   "khatma": {
    "su": 2,
-   "n": 20,
-   "rot": 7,
+   "n": 21,
+   "rot": 8,
    "khatma": 1
   },
   "podcast": {
@@ -37,7 +37,7 @@
   }
  },
  "slots": {
-  "afternoon": "2026-11-26",
+  "afternoon": "2026-11-27",
   "morning": "2026-11-27",
   "evening": "2026-11-26",
   "discover": "2026-11-26"
@@ -344,6 +344,19 @@
     "instagram": {
      "id": "17927133705439338",
      "url": "https://www.instagram.com/reel/DgPYx19SeI2/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-27T15:02+03:00",
+   "slot": "afternoon",
+   "stream": "khatma",
+   "item": "khatma 2:20-20 luhaidan",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "18101701376537410",
+     "url": "https://www.instagram.com/reel/DgPojNoh37s/"
     }
    }
   }
