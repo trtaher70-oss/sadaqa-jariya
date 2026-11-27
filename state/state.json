@@ -13,7 +13,8 @@
    "done": [
     "13",
     "09",
-    "11"
+    "11",
+    "18"
    ]
   },
   "morning_queue": {
@@ -42,7 +43,7 @@
  "slots": {
   "afternoon": "2026-11-27",
   "morning": "2026-11-27",
-  "evening": "2026-11-26",
+  "evening": "2026-11-27",
   "discover": "2026-11-27",
   "friday_asr": "2026-11-27"
  },
@@ -410,6 +411,23 @@
    "results": {
     "instagram": {
      "error": "instagram container: {'error': {'message': 'Invalid parameter', 'code': 100, 'type': 'FacebookApiException', 'fbtrace_id': 'AcaeTN0EOpr797uPtxSQuVM'}} (after 5 attempts)"
+    }
+   }
+  },
+  {
+   "t": "2026-11-27T21:02+03:00",
+   "slot": "evening",
+   "stream": "podcast",
+   "item": "podcast 18",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "17947037466388719",
+     "url": "https://www.instagram.com/reel/DgQRwYgPkG0/"
+    },
+    "youtube": {
+     "id": "qQKB28FMIsg",
+     "url": "https://youtube.com/shorts/qQKB28FMIsg"
     }
    }
   }
