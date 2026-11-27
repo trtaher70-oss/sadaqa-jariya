@@ -34,13 +34,17 @@
   },
   "pool:friday": {
    "i": 1
+  },
+  "pool:friday_hour": {
+   "i": 1
   }
  },
  "slots": {
   "afternoon": "2026-11-27",
   "morning": "2026-11-27",
   "evening": "2026-11-26",
-  "discover": "2026-11-26"
+  "discover": "2026-11-26",
+  "friday_asr": "2026-11-27"
  },
  "log": [
   {
@@ -357,6 +361,19 @@
     "instagram": {
      "id": "18101701376537410",
      "url": "https://www.instagram.com/reel/DgPojNoh37s/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-27T16:31+03:00",
+   "slot": "friday_asr",
+   "stream": "pool:friday_hour",
+   "item": "occasion:friday_hour fh1 nufais",
+   "occasion": "يوم الجمعة",
+   "results": {
+    "instagram": {
+     "id": "17960309703278283",
+     "url": "https://www.instagram.com/reel/DgPyz6eqsnX/"
     }
    }
   }
