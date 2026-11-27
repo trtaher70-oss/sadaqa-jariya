@@ -376,10 +376,23 @@
      "url": "https://www.instagram.com/reel/DgPyz6eqsnX/"
     }
    }
+  },
+  {
+   "t": "2026-11-27T18:01+03:00",
+   "slot": "discover",
+   "stream": "curated_trial",
+   "item": "discover 02 luhaidan",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "error": "instagram container: {'error': {'message': 'Invalid parameter', 'code': 100, 'type': 'FacebookApiException', 'fbtrace_id': 'AcIGQewmxR0_bjhKav3RAX1'}} (after 5 attempts)"
+    }
+   }
   }
  ],
  "fails": {
   "discover:2026-11-26": 3,
-  "morning:2026-11-27": 1
+  "morning:2026-11-27": 1,
+  "discover:2026-11-27": 1
  }
 }
