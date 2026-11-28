@@ -14,7 +14,8 @@
     "13",
     "09",
     "11",
-    "18"
+    "18",
+    "10"
    ]
   },
   "morning_queue": {
@@ -44,7 +45,7 @@
  "slots": {
   "afternoon": "2026-11-28",
   "morning": "2026-11-28",
-  "evening": "2026-11-27",
+  "evening": "2026-11-28",
   "discover": "2026-11-28",
   "friday_asr": "2026-11-27"
  },
@@ -491,6 +492,22 @@
    "results": {
     "instagram": {
      "error": "instagram container: {'error': {'message': 'Invalid parameter', 'code': 100, 'type': 'FacebookApiException', 'fbtrace_id': 'A8s8mcOpRY1Mn3Vfq1bQnAp'}} (after 5 attempts)"
+    }
+   }
+  },
+  {
+   "t": "2026-11-28T21:02+03:00",
+   "slot": "evening",
+   "stream": "podcast",
+   "item": "podcast 10",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "error": "instagram upload: {'debug_info': {'retriable': False, 'type': 'ProcessingFailedError', 'message': 'Request processing failed'}} (after 5 attempts)"
+    },
+    "youtube": {
+     "id": "2Z4RFOpnmEE",
+     "url": "https://youtube.com/shorts/2Z4RFOpnmEE"
     }
    }
   }
