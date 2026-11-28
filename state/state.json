@@ -5,8 +5,8 @@
   },
   "khatma": {
    "su": 2,
-   "n": 21,
-   "rot": 8,
+   "n": 23,
+   "rot": 9,
    "khatma": 1
   },
   "podcast": {
@@ -42,7 +42,7 @@
   }
  },
  "slots": {
-  "afternoon": "2026-11-27",
+  "afternoon": "2026-11-28",
   "morning": "2026-11-28",
   "evening": "2026-11-27",
   "discover": "2026-11-27",
@@ -442,6 +442,19 @@
     "instagram": {
      "id": "18473484421142014",
      "url": "https://www.instagram.com/reel/DgR4tAnTnbx/"
+    }
+   }
+  },
+  {
+   "t": "2026-11-28T15:01+03:00",
+   "slot": "afternoon",
+   "stream": "khatma",
+   "item": "khatma 2:21-22 peshawa",
+   "occasion": null,
+   "results": {
+    "instagram": {
+     "id": "18101090987407698",
+     "url": "https://www.instagram.com/reel/DgSNxP4B2dA/"
     }
    }
   }
